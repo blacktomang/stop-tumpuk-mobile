@@ -88,13 +88,40 @@ export interface SqlMigrationExecutor {
   runAsync(sql: string, ...parameters: unknown[]): Promise<unknown>;
 }
 
+function validateMigrationPlan(plan: readonly SqlMigration[]): void {
+  let previousVersion = 0;
+  const versions = new Set<number>();
+  for (const migration of plan) {
+    if (
+      !Number.isSafeInteger(migration.version) ||
+      migration.version <= previousVersion ||
+      versions.has(migration.version)
+    ) {
+      throw new Error(
+        "SQLite migrations must have strictly increasing versions",
+      );
+    }
+    previousVersion = migration.version;
+    versions.add(migration.version);
+  }
+}
+
 /** Applies migrations in order; callers provide the transaction boundary. */
-export async function applyMigrations(
+export async function applyMigrationPlan(
   database: SqlMigrationExecutor,
+  plan: readonly SqlMigration[],
   appliedVersions: ReadonlySet<number>,
   now = new Date().toISOString(),
 ): Promise<void> {
-  for (const migration of migrations) {
+  validateMigrationPlan(plan);
+  for (const version of appliedVersions) {
+    if (!Number.isSafeInteger(version) || version <= 0) {
+      throw new Error("SQLite migration versions must be positive integers");
+    }
+  }
+
+  /** Missing versions are intentionally applied even when a later version is already recorded. */
+  for (const migration of plan) {
     if (appliedVersions.has(migration.version)) continue;
     for (const statement of migration.statements)
       await database.execAsync(statement);
@@ -104,4 +131,12 @@ export async function applyMigrations(
       now,
     );
   }
+}
+
+export async function applyMigrations(
+  database: SqlMigrationExecutor,
+  appliedVersions: ReadonlySet<number>,
+  now = new Date().toISOString(),
+): Promise<void> {
+  return applyMigrationPlan(database, migrations, appliedVersions, now);
 }
