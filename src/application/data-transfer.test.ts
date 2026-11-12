@@ -102,7 +102,9 @@ describe("native transfer boundary", () => {
       update: async () => undefined,
     };
     repositories.captureIntake = {
-      get: async () => null,
+      get: async () => {
+        throw new Error("disposable intake must not be exported");
+      },
       stage: async () => undefined,
       consume: async () => undefined,
     };
@@ -292,6 +294,77 @@ describe("native transfer boundary", () => {
     });
   });
 
+  it("leaves no durable writes when a repository transaction is interrupted", async () => {
+    const writes: string[] = [];
+    let transactions = 0;
+    const repositories = {} as NativeRepositories;
+    repositories.materials = {
+      get: async () => null,
+      list: async () => [],
+      findByNormalizedUrl: async () => null,
+      insert: async (material) => {
+        writes.push(`material:${material.id}`);
+      },
+      update: async () => undefined,
+      delete: async () => undefined,
+    };
+    repositories.notes = {
+      list: async () => [],
+      listForMaterial: async () => [],
+      get: async () => null,
+      insert: async () => {
+        throw new Error("interrupted import");
+      },
+      update: async () => undefined,
+      delete: async () => undefined,
+    };
+    repositories.events = {
+      list: async () => [],
+      listForMaterial: async () => [],
+      append: async (event) => {
+        writes.push(`event:${event.id}`);
+      },
+    };
+    repositories.sessions = {
+      list: async () => [],
+      getActiveForMaterial: async () => null,
+      listForMaterial: async () => [],
+      insert: async (session) => {
+        writes.push(`session:${session.id}`);
+      },
+      update: async () => undefined,
+    };
+    repositories.settings = {
+      get: async () => null,
+      save: async () => {
+        writes.push("settings");
+      },
+    };
+    repositories.captureIntake = {
+      get: async () => null,
+      stage: async () => undefined,
+      consume: async () => undefined,
+    };
+    repositories.transaction = async (work) => {
+      transactions += 1;
+      const snapshot = [...writes];
+      try {
+        return await work(repositories);
+      } catch (error) {
+        writes.length = 0;
+        writes.push(...snapshot);
+        throw error;
+      }
+    };
+
+    await expect(importData(envelope(), repositories)).rejects.toThrow(
+      "interrupted import",
+    );
+
+    expect(transactions).toBe(1);
+    expect(writes).toEqual([]);
+  });
+
   it("validates before opening a repository transaction and therefore performs no writes", async () => {
     const inserted = {
       materials: 0,
@@ -365,6 +438,13 @@ describe("native transfer boundary", () => {
     ).rejects.toThrow(
       "Every imported note, event, and session must reference an imported material.",
     );
+
+    await expect(
+      importData(
+        JSON.stringify({ ...envelope(), version: exportVersion + 1 }),
+        repositories,
+      ),
+    ).rejects.toThrow("This export format is not supported.");
 
     expect(transactions).toBe(0);
     expect(inserted).toEqual({
