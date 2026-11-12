@@ -265,6 +265,7 @@ produce an evidence record.
 - **NATIVE-010:** Runtime validators and pure domain rules exist under `src/`; strict TypeScript and focused/full automated tests pass. The remaining work is wiring those boundaries into the native screens and runtime adapters.
 - **NATIVE-011:** The SQLite schema/migration metadata, typed repository interfaces, and isolated `expo-sqlite` adapter exist under `src/storage/sqlite/`; automated schema checks pass, while native build/runtime persistence checks remain open.
 - **NATIVE-012:** The dependency-free transfer validator, serializer, additive conflict preview, and repository-backed transactional import application exist under `src/application/data-transfer.ts`; focused transfer tests pass, while native SQLite persistence wiring remains open.
+- **NATIVE-002:** The `/webview-probe` development-build route, representative source matrix, policy evidence model, loading/error state, and browser fallback are committed; Android emulator and physical-device observations remain open.
 - **NATIVE-014:** Versioned migration initialization, repeat-open persistence, skipped-version, newer-schema rejection, rollback, and no-reset tests exist under `src/storage/sqlite/`; native runtime recovery checks remain open.
 - **NATIVE-013:** Additive transfer validation/import and repository-backed export are committed under `src/application/data-transfer.ts`; native file-picker/filesystem UI and SQLite round-trip checks remain open.
 - **NATIVE-020:** A repository-injected native capture service and destination-aware capture route exist under `src/application/capture-service.ts` and `app/index.tsx`, covering save-first capture, duplicate retry, staged-share consumption, and optional enrichment; native persistence/device checks remain open.
@@ -278,7 +279,7 @@ produce an evidence record.
 - **NATIVE-031/NATIVE-032:** Repository-backed capacity and recommendation application boundaries exist under `src/application/planning-service.ts`; the accessible capacity dashboard, 5/15/30/custom minute input, deterministic recommendation, partial-session state, and manual/unknown selection UI are committed. Emulator/device checks remain open.
 - **NATIVE-041:** Pure WebView navigation and external-fallback policy exists under `src/application/webview-policy.ts`; native WebView callbacks, isolation configuration, and device behavior remain open.
 - **NATIVE-061:** The current Expo SDK target has no iOS Share Extension/App Group configuration. iOS `expo-sharing` handoffs are routed to explicit URL-paste guidance without reading or staging payloads; iOS share-menu support is not claimed and physical-device verification remains open.
-- **Test record:** Root `pnpm typecheck`, `pnpm test` (21 files, 106 tests), `pnpm format:check`, and `git diff --check` pass against native sources. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
+- **Test record:** Root `pnpm typecheck`, `pnpm test` (22 files, 110 tests), `pnpm format:check`, and `git diff --check` pass against native sources. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
 
 ## Historical web verification context
 
