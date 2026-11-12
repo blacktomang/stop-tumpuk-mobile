@@ -1,5 +1,5 @@
 import { randomUUID } from "expo-crypto";
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -126,7 +126,15 @@ export default function HomeScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
-            <Text style={styles.eyebrow}>STOP-TUMPUK</Text>
+            <View style={styles.headerRow}>
+              <Text style={styles.eyebrow}>STOP-TUMPUK</Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push("/settings")}
+              >
+                <Text style={styles.settingsLink}>Settings</Text>
+              </Pressable>
+            </View>
             <Text style={styles.title}>Make room to finish.</Text>
             <Text style={styles.intro}>
               Save something useful now. Decide whether it belongs in your
@@ -246,6 +254,11 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.paper },
   content: { flexGrow: 1, padding: 24, paddingTop: 68, gap: 24 },
   header: { gap: 12, maxWidth: 480 },
+  headerRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
   eyebrow: {
     color: colors.accent,
     fontSize: 12,
@@ -352,4 +365,5 @@ const styles = StyleSheet.create({
     width: 20,
   },
   noteText: { color: colors.muted, flex: 1, fontSize: 13, lineHeight: 20 },
+  settingsLink: { color: colors.accent, fontSize: 14, fontWeight: "700" },
 });
