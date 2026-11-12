@@ -1,5 +1,5 @@
 import { randomUUID } from "expo-crypto";
-import { router, Stack } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -31,12 +31,17 @@ const colors = {
 };
 
 export default function HomeScreen() {
+  const { intakeId, shareError } = useLocalSearchParams<{
+    intakeId?: string | string[];
+    shareError?: string | string[];
+  }>();
   const [repositories, setRepositories] = useState<NativeRepositories | null>(
     null,
   );
   const [databaseError, setDatabaseError] = useState<string | null>(null);
   const [url, setUrl] = useState("");
   const [destination, setDestination] = useState<CaptureDestination>("queued");
+  const [stagedIntakeId, setStagedIntakeId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -56,6 +61,44 @@ export default function HomeScreen() {
       mounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    const nextIntakeId = Array.isArray(intakeId) ? intakeId[0] : intakeId;
+    const nextShareError = Array.isArray(shareError)
+      ? shareError[0]
+      : shareError;
+    if (nextShareError === "unavailable") {
+      setStatus(
+        "That share could not be opened. Paste the link below to continue.",
+      );
+    }
+    if (!repositories || !nextIntakeId) return;
+
+    let mounted = true;
+    repositories.captureIntake
+      .get(nextIntakeId)
+      .then((intake) => {
+        if (!mounted) return;
+        if (!intake || intake.consumedAt !== null) {
+          setStatus(
+            "That shared link is no longer available. Paste it below to continue.",
+          );
+          return;
+        }
+        setUrl(intake.url);
+        setStagedIntakeId(intake.id);
+        setStatus("Shared link staged. Choose a destination, then save it.");
+      })
+      .catch(() => {
+        if (mounted)
+          setStatus(
+            "The shared link could not be loaded. Paste it below to continue.",
+          );
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [intakeId, repositories, shareError]);
 
   const captureService = useMemo(
     () =>
@@ -77,7 +120,9 @@ export default function HomeScreen() {
     setIsSaving(true);
     setStatus(null);
     try {
-      const result = await captureService.captureUrl(url, destination);
+      const result = stagedIntakeId
+        ? await captureService.captureStagedIntake(stagedIntakeId, destination)
+        : await captureService.captureUrl(url, destination);
       if (result.kind === "duplicate") {
         Alert.alert(
           "Already in your queue",
@@ -89,6 +134,7 @@ export default function HomeScreen() {
               onPress: () => {
                 void result.retry().then(() => {
                   setUrl("");
+                  setStagedIntakeId(null);
                   setStatus("Saved a second copy.");
                 });
               },
@@ -97,6 +143,7 @@ export default function HomeScreen() {
         );
       } else {
         setUrl("");
+        setStagedIntakeId(null);
         setStatus(
           destination === "queued"
             ? "Added to Reading plan."
