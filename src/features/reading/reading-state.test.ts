@@ -43,4 +43,28 @@ describe("reading route URL boundary", () => {
     expect(validateReadingUrl("javascript:alert(1)")).toBeNull();
     expect(validateReadingUrl("not a URL")).toBeNull();
   });
+
+  it.each([
+    "mailto:reader@example.com",
+    "tel:+628123456789",
+    "data:text/html,unsafe",
+    "file:///private/data",
+    "intent://open/article#Intent;scheme=https;end",
+    "ftp://example.com/article",
+  ])("rejects a non-HTTP(S) source URL: %s", (url) => {
+    expect(validateReadingUrl(url)).toBeNull();
+  });
+
+  it("keeps loading and error transitions independent of completion", () => {
+    const loading = readingProgressChanged(initialReadingState(), 0.5);
+    const failed = readingLoadFailed(loading, "The page failed.");
+    const recovered = readingLoadFinished(readingLoadStarted());
+
+    expect(loading.phase).toBe("loading");
+    expect(failed.phase).toBe("error");
+    expect(recovered).toMatchObject({ phase: "ready", progress: 1 });
+    expect([loading.phase, failed.phase, recovered.phase]).not.toContain(
+      "completed",
+    );
+  });
 });

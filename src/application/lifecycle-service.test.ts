@@ -120,6 +120,23 @@ describe("native lifecycle service", () => {
     ]);
   });
 
+  it("allows explicit finish without a timer or prior reading event", async () => {
+    const state = repositories(material("queued"));
+    const service = serviceFor(state);
+
+    const finished = await service.finish("material-1");
+
+    expect(finished.status).toBe("completed");
+    expect(state.events).toEqual([
+      {
+        id: "event-1",
+        materialId: "material-1",
+        type: "completed",
+        at: timestamp,
+      },
+    ]);
+  });
+
   it("reopens and returns items without inferring completion from timer state", async () => {
     const state = repositories(material("completed"));
     const service = serviceFor(state);

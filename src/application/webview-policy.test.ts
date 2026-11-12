@@ -25,6 +25,19 @@ describe("decideWebViewNavigation", () => {
   });
 
   it.each([
+    ["http://reader.example/redirected", "allow"],
+    ["https://reader.example/redirected", "allow"],
+    ["mailto:reader@example.com", "external"],
+    ["javascript:alert(1)", "block"],
+    ["data:text/html,unsafe", "block"],
+  ])(
+    "applies the same scheme boundary to a redirected URL: %s",
+    (url, kind) => {
+      expect(decideWebViewNavigation(url).kind).toBe(kind);
+    },
+  );
+
+  it.each([
     ["mailto:hello@example.com", "mailto"],
     ["tel:+628123456789", "tel"],
     ["sms:+628123456789", "sms"],
@@ -41,6 +54,8 @@ describe("decideWebViewNavigation", () => {
     "javascript:alert(1)",
     "data:text/html,unsafe",
     "file:///private/data",
+    "blob:https://example.com/id",
+    "about:blank",
   ])("blocks unsafe scheme %s", (url) => {
     expect(decideWebViewNavigation(url)).toMatchObject({
       kind: "block",
@@ -146,5 +161,10 @@ describe("reading route boundary", () => {
         openBrowserAsync: async () => undefined,
       }),
     ).resolves.toEqual({ status: "invalid-url" });
+    await expect(
+      openBrowserFallback("https://example.com", {
+        openBrowserAsync: async () => ({ type: "dismiss" }),
+      }),
+    ).resolves.toEqual({ status: "cancelled" });
   });
 });

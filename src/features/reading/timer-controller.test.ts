@@ -134,6 +134,8 @@ describe("native reading timer controller", () => {
     await controller.load();
     expect(snapshots.at(-1)).toBe("expired");
     expect(state.sessions[0]?.state).toBe("running");
+    // The controller only owns session state; expiry has no completion command.
+    expect(controller).not.toHaveProperty("finish");
     controller.dispose();
   });
 
