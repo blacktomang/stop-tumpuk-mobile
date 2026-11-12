@@ -50,6 +50,7 @@ export default function DashboardScreen() {
 
   const refreshDashboard = useCallback(() => {
     let mounted = true;
+    setError(null);
     openNativeRepositories()
       .then(async (repositories) => {
         const service = createPlanningService({ repositories });
@@ -60,6 +61,7 @@ export default function DashboardScreen() {
         if (mounted) {
           setCapacity(nextCapacity);
           setRecommendation(nextRecommendation);
+          setError(null);
         }
       })
       .catch(() => {
@@ -86,6 +88,7 @@ export default function DashboardScreen() {
         repositories,
       }).recommend(minutes * 60);
       setRecommendation(nextRecommendation);
+      setError(null);
     } catch {
       setCustomError("The recommendation could not be refreshed.");
     }
