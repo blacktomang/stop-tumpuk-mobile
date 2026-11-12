@@ -98,6 +98,12 @@ export default function ReadingScreen() {
             .get(params.materialId)
             .then((material) => {
               if (mounted) setMaterialStatus(material?.status ?? null);
+            })
+            .catch(() => {
+              if (mounted)
+                setMessage(
+                  "This material could not be loaded. Finish may be unavailable until storage recovers.",
+                );
             });
         }
       })
