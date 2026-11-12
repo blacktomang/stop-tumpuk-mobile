@@ -52,7 +52,7 @@ Do not report these commands as available until the root manifest defines them a
 | `pnpm build:android` | Produce a release/preview Android binary | native release validation |
 | `pnpm build:ios` | Produce a release/preview iOS binary | native release validation |
 
-The scaffold should use `expo install` for Expo-managed modules, `expo-doctor` after dependency changes, and a development build for `expo-sharing` configuration and WebView behavior. No EAS project, signing credentials, Android SDK, Xcode version, or installed package version is assumed yet.
+The scaffold should use `expo install` for Expo-managed modules, `expo-doctor` after dependency changes, and a development build for `expo-sharing` configuration and WebView behavior. An EAS project and development/preview/production profiles are now recorded in `app.json` and `eas.json`; signing credentials, Android SDK, Xcode version, and built-device evidence remain open until their release gates run.
 
 ## Dependency policy
 
