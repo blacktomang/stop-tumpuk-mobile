@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createCaptureService } from "./capture-service";
+import { createLifecycleService } from "./lifecycle-service";
 import { createMetadataAdapter } from "../providers/metadata-adapter";
 import type { NativeRepositories } from "../storage/sqlite/repositories";
 import type {
@@ -102,6 +103,42 @@ describe("native capture service", () => {
     expect(state.events.map((event) => event.type)).toEqual([
       "captured",
       "queued",
+    ]);
+  });
+
+  it("supports the complete capture-to-finish workflow through explicit lifecycle actions", async () => {
+    const state = repositories();
+    const capture = createCaptureService(dependencies(state.repos));
+    const lifecycle = createLifecycleService({
+      repositories: state.repos,
+      generateId: (() => {
+        let id = 100;
+        return () => `event-${++id}`;
+      })(),
+      now: () => timestamp,
+    });
+
+    const captured = await capture.captureUrl(
+      "https://example.com/finish-me",
+      "queued",
+    );
+    expect(captured.kind).toBe("saved");
+    if (captured.kind !== "saved") return;
+
+    const started = await lifecycle.start(captured.material.id);
+    const finished = await lifecycle.finish(started.id);
+
+    expect(finished).toMatchObject({
+      id: captured.material.id,
+      status: "completed",
+      originalUrl: "https://example.com/finish-me",
+    });
+    expect(state.materials[0]?.status).toBe("completed");
+    expect(state.events.map((event) => event.type)).toEqual([
+      "captured",
+      "queued",
+      "in-progress",
+      "completed",
     ]);
   });
 
