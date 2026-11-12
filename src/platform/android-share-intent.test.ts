@@ -60,6 +60,19 @@ describe("Android share intent boundary", () => {
     ).toThrow();
   });
 
+  it("skips an unsupported payload when a later payload is usable", () => {
+    expect(
+      parseAndroidSharePayloads([
+        { value: "content://private/file", shareType: "file" },
+        {
+          value: "https://example.com/lesson",
+          shareType: "url",
+          mimeType: "text/uri-list",
+        },
+      ]),
+    ).toEqual({ url: "https://example.com/lesson" });
+  });
+
   it("stages the URL and redirects to the normal capture form", async () => {
     const intakes: CaptureIntake[] = [];
     let cleared = 0;
@@ -113,6 +126,27 @@ describe("Android share intent boundary", () => {
 
     await expect(
       redirect({ path: "stoptumpuk://expo-sharing", initial: false }),
+    ).resolves.toBe("/?shareError=unavailable");
+    expect(cleared).toBe(1);
+  });
+
+  it("falls back when the native payload getter is unavailable", async () => {
+    let cleared = 0;
+    const redirect = createAndroidShareIntentRedirector({
+      getSharedPayloads: () => {
+        throw new Error("native sharing unavailable");
+      },
+      clearSharedPayloads: () => {
+        cleared += 1;
+        throw new Error("native sharing unavailable");
+      },
+      openRepositories: async () => repositories(),
+      generateId: () => "unused",
+      now: () => "2026-11-12T00:00:00.000Z",
+    });
+
+    await expect(
+      redirect({ path: "stoptumpuk://expo-sharing", initial: true }),
     ).resolves.toBe("/?shareError=unavailable");
     expect(cleared).toBe(1);
   });

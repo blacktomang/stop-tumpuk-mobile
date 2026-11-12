@@ -177,6 +177,53 @@ describe("native capture service", () => {
     expect(state.materials[0]?.title).toBe("Shared title");
   });
 
+  it("rejects a consumed intake on a relaunch without creating another material", async () => {
+    const intake: CaptureIntake = {
+      id: "share-relaunch",
+      url: "https://example.com/relaunch",
+      title: null,
+      receivedAt: timestamp,
+      consumedAt: null,
+    };
+    const state = repositories({ intake });
+    const firstService = createCaptureService(dependencies(state.repos));
+
+    await expect(
+      firstService.captureStagedIntake(intake.id, "queued"),
+    ).resolves.toMatchObject({ kind: "saved" });
+
+    const relaunchedService = createCaptureService(dependencies(state.repos));
+    await expect(
+      relaunchedService.captureStagedIntake(intake.id, "queued"),
+    ).rejects.toThrow("no longer available");
+    expect(state.materials).toHaveLength(1);
+  });
+
+  it("does not consume a staged intake until an explicit duplicate retry", async () => {
+    const state = repositories();
+    const service = createCaptureService(dependencies(state.repos));
+    await service.captureUrl("https://example.com/already-saved", "inbox");
+
+    const intake: CaptureIntake = {
+      id: "share-duplicate",
+      url: "https://example.com/already-saved",
+      title: "Shared duplicate",
+      receivedAt: timestamp,
+      consumedAt: null,
+    };
+    await state.repos.captureIntake.stage(intake);
+
+    const duplicate = await service.captureStagedIntake(intake.id, "queued");
+    expect(duplicate.kind).toBe("duplicate");
+    expect(state.intakes[0]?.consumedAt).toBeNull();
+    if (duplicate.kind !== "duplicate") return;
+
+    const retry = await duplicate.retry();
+    expect(retry.kind).toBe("saved");
+    expect(state.intakes[0]?.consumedAt).toBe(timestamp);
+    expect(state.materials[1]?.status).toBe("queued");
+  });
+
   it("keeps a changed title and manual estimate when provider enrichment finishes", async () => {
     let releaseProvider: ((value: unknown) => void) | undefined;
     const provider = createMetadataAdapter(
