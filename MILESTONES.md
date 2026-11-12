@@ -282,6 +282,8 @@ produce an evidence record.
 - **NATIVE-031/NATIVE-032:** Repository-backed capacity and recommendation application boundaries exist under `src/application/planning-service.ts`; the accessible capacity dashboard, 5/15/30/custom minute input, deterministic recommendation, partial-session state, and manual/unknown selection UI are committed. Emulator/device checks remain open.
 - **NATIVE-041:** WebView navigation and external-fallback policy is enforced at the native route boundary with no privileged bridge; device behavior remains open.
 - **NATIVE-061:** The current Expo SDK target has no iOS Share Extension/App Group configuration. iOS `expo-sharing` handoffs are routed to explicit URL-paste guidance without reading or staging payloads; iOS share-menu support is not claimed and physical-device verification remains open.
+- **NATIVE-071:** Android release validation is not run in this environment: `adb`, Android emulator tooling, and a connected physical device are unavailable. Fresh-install, restart/offline persistence, WebView matrix, import/export, timer interruption, and native share-menu evidence remain open.
+- **NATIVE-072/NATIVE-073:** iOS simulator/device/store-release validation and the first native release baseline remain blocked on the missing platform toolchains, signing context, and device evidence; no iOS or store support is claimed.
 - **Test record:** Root `pnpm typecheck`, `pnpm test` (25 files, 127 tests), `pnpm lint`, `pnpm format:check`, and `git diff --check` pass against native sources. The native capture fixture covers capture, start, and explicit finish with lifecycle events. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
 
 ## Historical web verification context
