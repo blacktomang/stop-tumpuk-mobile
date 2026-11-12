@@ -2,6 +2,7 @@ import { Stack, router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  TextInput,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -10,12 +11,18 @@ import {
 } from "react-native";
 
 import { createPlanningService } from "../src/application/planning-service";
-import type { CapacityViewModel } from "../src/domain";
+import type { CapacityViewModel, RecommendationResult } from "../src/domain";
+import { estimateLabel, estimatedSeconds, formatDuration } from "../src/domain";
+import type { ManualSelection } from "../src/application/planning-service";
 import {
   capacityProjection,
   presentCapacity,
 } from "../src/features/dashboard/capacity-presenter";
 import { CapacityMeter } from "../src/features/dashboard/capacity-meter";
+import {
+  availableMinuteShortcuts,
+  parseAvailableMinutes,
+} from "../src/features/dashboard/recommendation-presenter";
 import { openNativeRepositories } from "../src/storage/sqlite/expo-sqlite-adapter";
 
 const colors = {
@@ -32,15 +39,28 @@ const colors = {
 export default function DashboardScreen() {
   const [capacity, setCapacity] = useState<CapacityViewModel | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [recommendation, setRecommendation] =
+    useState<RecommendationResult | null>(null);
+  const [availableMinutes, setAvailableMinutes] = useState(15);
+  const [customMinutes, setCustomMinutes] = useState("");
+  const [customError, setCustomError] = useState<string | null>(null);
+  const [showManual, setShowManual] = useState(false);
+  const [manualSelection, setManualSelection] =
+    useState<ManualSelection | null>(null);
 
   useEffect(() => {
     let mounted = true;
     openNativeRepositories()
-      .then((repositories) =>
-        createPlanningService({ repositories }).getCapacity(),
-      )
-      .then((nextCapacity) => {
-        if (mounted) setCapacity(nextCapacity);
+      .then(async (repositories) => {
+        const service = createPlanningService({ repositories });
+        const [nextCapacity, nextRecommendation] = await Promise.all([
+          service.getCapacity(),
+          service.recommend(15 * 60),
+        ]);
+        if (mounted) {
+          setCapacity(nextCapacity);
+          setRecommendation(nextRecommendation);
+        }
       })
       .catch(() => {
         if (mounted)
@@ -52,6 +72,44 @@ export default function DashboardScreen() {
       mounted = false;
     };
   }, []);
+
+  async function chooseAvailableMinutes(minutes: number) {
+    setAvailableMinutes(minutes);
+    setCustomError(null);
+    setShowManual(false);
+    setManualSelection(null);
+    try {
+      const repositories = await openNativeRepositories();
+      const nextRecommendation = await createPlanningService({
+        repositories,
+      }).recommend(minutes * 60);
+      setRecommendation(nextRecommendation);
+    } catch {
+      setCustomError("The recommendation could not be refreshed.");
+    }
+  }
+
+  async function applyCustomMinutes() {
+    const minutes = parseAvailableMinutes(customMinutes);
+    if (minutes === null) {
+      setCustomError("Enter a whole number of minutes, or choose a shortcut.");
+      return;
+    }
+    await chooseAvailableMinutes(minutes);
+  }
+
+  async function selectManual(materialId: string) {
+    try {
+      const repositories = await openNativeRepositories();
+      const selection = await createPlanningService({
+        repositories,
+      }).selectManual(materialId);
+      setManualSelection(selection);
+      setShowManual(false);
+    } catch {
+      setCustomError("That item is no longer available.");
+    }
+  }
 
   const presentation = capacity ? presentCapacity(capacity) : null;
 
@@ -116,22 +174,150 @@ export default function DashboardScreen() {
               </Text>
             </Pressable>
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ disabled: true }}
-              disabled
-              style={styles.recommendation}
-            >
-              <View style={styles.recommendationCopy}>
-                <Text style={styles.recommendationLabel}>
-                  NEXT RECOMMENDATION
-                </Text>
-                <Text style={styles.recommendationText}>
-                  One fitting item will live here next.
-                </Text>
+            <View style={styles.recommendation}>
+              <Text style={styles.recommendationLabel}>READ NEXT</Text>
+              <Text style={styles.recommendationText}>
+                How much time do you have right now?
+              </Text>
+              <View style={styles.shortcuts}>
+                {availableMinuteShortcuts.map((minutes) => (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{
+                      selected: availableMinutes === minutes,
+                    }}
+                    key={minutes}
+                    onPress={() => void chooseAvailableMinutes(minutes)}
+                    style={({ pressed }) => [
+                      styles.shortcut,
+                      availableMinutes === minutes && styles.shortcutSelected,
+                      pressed && styles.pressed,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.shortcutText,
+                        availableMinutes === minutes &&
+                          styles.shortcutTextSelected,
+                      ]}
+                    >
+                      {minutes} min
+                    </Text>
+                  </Pressable>
+                ))}
               </View>
-              <Text style={styles.comingSoon}>COMING SOON</Text>
-            </Pressable>
+              <View style={styles.customRow}>
+                <TextInput
+                  accessibilityLabel="Custom available minutes"
+                  keyboardType="number-pad"
+                  onChangeText={setCustomMinutes}
+                  placeholder="Custom"
+                  placeholderTextColor={colors.muted}
+                  style={styles.customInput}
+                  value={customMinutes}
+                />
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => void applyCustomMinutes()}
+                  style={({ pressed }) => [
+                    styles.customButton,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.customButtonText}>Use time</Text>
+                </Pressable>
+              </View>
+              {customError ? (
+                <Text style={styles.error}>{customError}</Text>
+              ) : null}
+              {manualSelection ? (
+                <View style={styles.selection}>
+                  <Text style={styles.selectionLabel}>MANUALLY SELECTED</Text>
+                  <Text style={styles.recommendationTitle}>
+                    {manualSelection.material.title}
+                  </Text>
+                  <Text style={styles.recommendationText}>
+                    {manualSelection.estimatedSeconds === null
+                      ? "Time not estimated yet. This item was selected manually and is not claimed to fit."
+                      : `${formatDuration(manualSelection.estimatedSeconds)} · ${estimateLabel(manualSelection.material)}`}
+                  </Text>
+                </View>
+              ) : recommendation?.primary ? (
+                <View style={styles.selection}>
+                  <Text style={styles.selectionLabel}>FITS YOUR TIME</Text>
+                  <Text style={styles.recommendationTitle}>
+                    {recommendation.primary.title}
+                  </Text>
+                  <Text style={styles.recommendationText}>
+                    {formatDuration(
+                      estimatedSeconds(recommendation.primary) ?? 0,
+                    )}{" "}
+                    · Start with this one item.
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.selection}>
+                  <Text style={styles.selectionLabel}>NO FITTING ITEM</Text>
+                  <Text style={styles.recommendationText}>
+                    Nothing fits in {availableMinutes} minutes.
+                    {recommendation?.partial
+                      ? ` You can still choose “${recommendation.partial.title}” for a partial session.`
+                      : " Choose another to select an item manually."}
+                  </Text>
+                  {recommendation?.partial ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() =>
+                        void selectManual(recommendation.partial!.id)
+                      }
+                      style={({ pressed }) => [
+                        styles.partialButton,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <Text style={styles.secondaryText}>
+                        Choose longer item
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                </View>
+              )}
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setShowManual((visible) => !visible)}
+                style={({ pressed }) => [
+                  styles.manualButton,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.secondaryText}>
+                  {showManual ? "Hide choices" : "Choose another"}
+                </Text>
+              </Pressable>
+              {showManual && recommendation ? (
+                <View style={styles.manualList}>
+                  {recommendation.manual.map((item) => (
+                    <Pressable
+                      accessibilityRole="button"
+                      key={item.id}
+                      onPress={() => void selectManual(item.id)}
+                      style={({ pressed }) => [
+                        styles.manualItem,
+                        pressed && styles.pressed,
+                      ]}
+                    >
+                      <Text style={styles.manualTitle}>{item.title}</Text>
+                      <Text style={styles.manualEstimate}>
+                        {formatDuration(
+                          item.manualEstimatedSeconds ??
+                            item.sourceDurationSeconds,
+                        )}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              ) : null}
+            </View>
           </>
         ) : null}
       </ScrollView>
@@ -228,12 +414,9 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderStyle: "dashed",
     borderWidth: 1,
-    flexDirection: "row",
-    gap: 14,
-    justifyContent: "space-between",
+    gap: 12,
     padding: 16,
   },
-  recommendationCopy: { flex: 1, gap: 5 },
   recommendationLabel: {
     color: colors.muted,
     fontSize: 10,
@@ -241,12 +424,90 @@ const styles = StyleSheet.create({
     letterSpacing: 1.1,
   },
   recommendationText: { color: colors.ink, fontSize: 14, lineHeight: 20 },
-  comingSoon: {
-    color: colors.muted,
-    fontSize: 9,
-    fontWeight: "800",
-    letterSpacing: 0.8,
+  recommendationTitle: {
+    color: colors.ink,
+    fontSize: 17,
+    fontWeight: "700",
+    lineHeight: 22,
   },
+  shortcuts: { flexDirection: "row", gap: 8 },
+  shortcut: {
+    borderColor: colors.line,
+    borderRadius: 9,
+    borderWidth: 1,
+    flex: 1,
+    minHeight: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  shortcutSelected: {
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
+  },
+  shortcutText: { color: colors.accent, fontSize: 14, fontWeight: "700" },
+  shortcutTextSelected: { color: colors.panel },
+  customRow: { flexDirection: "row", gap: 8 },
+  customInput: {
+    borderColor: colors.line,
+    borderRadius: 9,
+    borderWidth: 1,
+    color: colors.ink,
+    flex: 1,
+    minHeight: 44,
+    paddingHorizontal: 12,
+  },
+  customButton: {
+    alignItems: "center",
+    backgroundColor: colors.accentSoft,
+    borderRadius: 9,
+    justifyContent: "center",
+    minHeight: 44,
+    paddingHorizontal: 14,
+  },
+  customButtonText: { color: colors.accent, fontSize: 14, fontWeight: "700" },
+  selection: {
+    backgroundColor: colors.accentSoft,
+    borderRadius: 10,
+    gap: 5,
+    padding: 12,
+  },
+  selectionLabel: {
+    color: colors.accent,
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
+  partialButton: {
+    alignSelf: "flex-start",
+    borderColor: colors.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    minHeight: 42,
+    justifyContent: "center",
+    paddingHorizontal: 12,
+  },
+  manualButton: {
+    alignItems: "center",
+    borderColor: colors.line,
+    borderRadius: 9,
+    borderWidth: 1,
+    minHeight: 46,
+    justifyContent: "center",
+  },
+  manualList: {
+    borderTopColor: colors.line,
+    borderTopWidth: 1,
+    gap: 8,
+    paddingTop: 8,
+  },
+  manualItem: {
+    backgroundColor: colors.paper,
+    borderRadius: 8,
+    gap: 3,
+    padding: 10,
+  },
+  manualTitle: { color: colors.ink, fontSize: 14, fontWeight: "700" },
+  manualEstimate: { color: colors.muted, fontSize: 13 },
   loading: { alignItems: "center", gap: 10, padding: 28 },
   muted: { color: colors.muted, fontSize: 14 },
   error: { color: colors.danger, fontSize: 14, lineHeight: 20 },

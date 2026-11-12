@@ -87,6 +87,82 @@ describe("planning application service", () => {
     });
   });
 
+  it("breaks equal-estimate ties by creation time and then stable ID", async () => {
+    const service = createPlanningService({
+      repositories: repositories(
+        [
+          material({
+            id: "later",
+            createdAt: "2026-01-02T00:00:00.000Z",
+            sourceDurationSeconds: 600,
+          }),
+          material({
+            id: "earlier",
+            createdAt: "2026-01-01T00:00:00.000Z",
+            sourceDurationSeconds: 600,
+          }),
+          material({
+            id: "stable-b",
+            createdAt: "2026-01-03T00:00:00.000Z",
+            sourceDurationSeconds: 600,
+          }),
+          material({
+            id: "stable-a",
+            createdAt: "2026-01-03T00:00:00.000Z",
+            sourceDurationSeconds: 600,
+          }),
+        ],
+        settings(),
+      ),
+    });
+
+    await expect(service.recommend(600)).resolves.toMatchObject({
+      primary: { id: "earlier" },
+      manual: [
+        { id: "earlier" },
+        { id: "later" },
+        { id: "stable-a" },
+        { id: "stable-b" },
+      ],
+    });
+  });
+
+  it("reports no fitting item and exposes the shortest longer item for a partial session", async () => {
+    const service = createPlanningService({
+      repositories: repositories(
+        [
+          material({ id: "longer", sourceDurationSeconds: 1_800 }),
+          material({ id: "shorter", sourceDurationSeconds: 1_200 }),
+        ],
+        settings(),
+      ),
+    });
+
+    await expect(service.recommend(600)).resolves.toMatchObject({
+      primary: null,
+      partial: { id: "shorter" },
+    });
+  });
+
+  it("never treats an unknown estimate as fitting, but allows manual selection", async () => {
+    const service = createPlanningService({
+      repositories: repositories(
+        [material({ id: "unknown", sourceDurationSeconds: null })],
+        settings(),
+      ),
+    });
+
+    await expect(service.recommend(600)).resolves.toMatchObject({
+      primary: null,
+      partial: null,
+      manual: [{ id: "unknown" }],
+    });
+    await expect(service.selectManual("unknown")).resolves.toMatchObject({
+      material: { id: "unknown" },
+      estimatedSeconds: null,
+    });
+  });
+
   it("allows explicit active-item selection and rejects invalid choices", async () => {
     const service = createPlanningService({
       repositories: repositories(
