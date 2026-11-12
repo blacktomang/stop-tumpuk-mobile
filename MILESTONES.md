@@ -252,11 +252,11 @@ The working sequencing assumption is Android first for implementation and valida
 
 ## Current progress record
 
-- **NATIVE-001:** Temporary Expo SDK 58 scaffold resolved with pnpm; `expo-doctor` passed 20/20 checks. Root `package.json`, `app.json`, `tsconfig.json`, minimal Expo Router routes, `vitest.config.ts`, and the active root `pnpm-lock.yaml` are prepared. Installing the root dependency tree and running native typecheck remain open.
+- **NATIVE-001:** Temporary Expo SDK 58 scaffold resolved with pnpm; `expo-doctor` passed 20/20 checks. Root `package.json`, `app.json`, `tsconfig.json`, Expo Router routes, `vitest.config.ts`, and the active root `pnpm-lock.yaml` are committed. Direct root TypeScript verification passes; development-build and device validation remain open.
 - **NATIVE-003:** The source audit and native runtime audit are captured in [SYSTEM_DESIGN.md](SYSTEM_DESIGN.md); copied pure logic and browser-specific rewrite boundaries are identified.
-- **NATIVE-010:** Runtime validators and pure domain rules exist under `src/`; focused tests pass. The remaining work is wiring those boundaries into the native screens and runtime adapters.
-- **NATIVE-011:** The SQLite schema/migration metadata, typed repository interfaces, and isolated `expo-sqlite` adapter exist under `src/storage/sqlite/`; native build/runtime persistence checks remain open.
-- **NATIVE-012:** The dependency-free transfer validator, serializer, additive conflict preview, and repository-backed transactional import application exist under `src/application/data-transfer.ts`; native SQLite persistence wiring remains open.
+- **NATIVE-010:** Runtime validators and pure domain rules exist under `src/`; strict TypeScript and focused/full automated tests pass. The remaining work is wiring those boundaries into the native screens and runtime adapters.
+- **NATIVE-011:** The SQLite schema/migration metadata, typed repository interfaces, and isolated `expo-sqlite` adapter exist under `src/storage/sqlite/`; automated schema checks pass, while native build/runtime persistence checks remain open.
+- **NATIVE-012:** The dependency-free transfer validator, serializer, additive conflict preview, and repository-backed transactional import application exist under `src/application/data-transfer.ts`; focused transfer tests pass, while native SQLite persistence wiring remains open.
 - **NATIVE-020:** A repository-injected native capture service exists under `src/application/capture-service.ts`, covering save-first capture, destination-aware events, duplicate retry, staged-share consumption, and optional enrichment; UI wiring remains open.
 - **NATIVE-033/NATIVE-042:** Lifecycle commands for commit, start, finish, reopen, return to Inbox, archive, and delete exist under `src/application/lifecycle-service.ts`; UI wiring and runtime persistence remain open.
 - **NATIVE-051:** The fixed 25-minute timer service, elapsed/expiry rules, and valid pause/resume/end transition guards exist under `src/application/timer-service.ts`; AppState and native interruption wiring remain open.
