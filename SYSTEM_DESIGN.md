@@ -64,15 +64,15 @@ Adapt or rewrite the historical web application services around native interface
 
 Use one stable native database identity, for example `stop-tumpuk-reading-plan.sqlite`, and keep the schema version in the SQLite migration table. Do not reset or replace this database on launch or after an upgrade error. Every released schema change gets a forward migration, an upgrade test, and a recovery path.
 
-| Table | Purpose and important fields |
-| --- | --- |
-| `materials` | Stable `id`, original and normalized HTTP(S) URLs, domain, title, nullable thumbnail, type, lifecycle status, source duration/provenance/completeness, playback speed, nullable manual estimate, timestamps. No priority or multiplier fields. |
-| `notes` | Stable `id`, `material_id`, plain-text content, created/updated timestamps. `material_id` is non-unique so one material has multiple notes. |
-| `settings` | Singleton row with nullable weekday/weekend minutes, onboarding dismissal, availability reminder timestamp, and current settings version. |
-| `sessions` | Stable `id`, `material_id`, started timestamp, elapsed seconds, running/paused/ended state, state-change timestamp, nullable ended timestamp. |
-| `material_events` | Stable event ID, material ID, lifecycle event type, UTC timestamp, and any minimal event metadata needed for history. |
-| `capture_intake` | Stable staged-share ID, candidate URL/text/title metadata, received/consumed timestamps, and a consumed marker. It is disposable and excluded from exports. |
-| `schema_migrations` | Migration bookkeeping owned by the SQLite adapter. Never use it to conceal a destructive reset. |
+| Table               | Purpose and important fields                                                                                                                                                                                                                   |
+| ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `materials`         | Stable `id`, original and normalized HTTP(S) URLs, domain, title, nullable thumbnail, type, lifecycle status, source duration/provenance/completeness, playback speed, nullable manual estimate, timestamps. No priority or multiplier fields. |
+| `notes`             | Stable `id`, `material_id`, plain-text content, created/updated timestamps. `material_id` is non-unique so one material has multiple notes.                                                                                                    |
+| `settings`          | Singleton row with nullable weekday/weekend minutes, onboarding dismissal, availability reminder timestamp, and current settings version.                                                                                                      |
+| `sessions`          | Stable `id`, `material_id`, started timestamp, elapsed seconds, running/paused/ended state, state-change timestamp, nullable ended timestamp.                                                                                                  |
+| `material_events`   | Stable event ID, material ID, lifecycle event type, UTC timestamp, and any minimal event metadata needed for history.                                                                                                                          |
+| `capture_intake`    | Stable staged-share ID, candidate URL/text/title metadata, received/consumed timestamps, and a consumed marker. It is disposable and excluded from exports.                                                                                    |
+| `schema_migrations` | Migration bookkeeping owned by the SQLite adapter. Never use it to conceal a destructive reset.                                                                                                                                                |
 
 Store seconds internally and UTC timestamps as ISO strings or an explicitly documented SQLite representation. `null` means unknown and zero is a known value. Compute estimated time, capacity, and recommendations from current rows; do not maintain redundant authoritative totals.
 
@@ -121,6 +121,26 @@ The reading route owns the selected material and renders only the saved HTTP(S) 
 - keep downloads, popups, login flows, media playback, and embedded providers subject to the feasibility matrix and fallback behavior.
 
 Remote pages are untrusted and may be hostile, broken, authenticated, paywalled, or incompatible with a mobile WebView. The native UI remains usable when the page fails. WebView feasibility must be checked early against representative intended sources such as a public article, Medium/Substack-style article, YouTube video, and a login/paywall example before the rest of the reading UI is built.
+
+### NATIVE-002 feasibility probe matrix
+
+The development-build route `/webview-probe` is a deliberately small evidence collector, not the
+reading route. It keeps the WebView isolated: there is no injected JavaScript, `onMessage` bridge,
+SQLite access, or app command exposed to remote content. Each row can be selected independently and
+records evidence locally in the route while it is open.
+
+| Source                | URL used by the probe                                     | Expected observation                                                                                           | Fallback/evidence to record                                                     |
+| --------------------- | --------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| Public article        | `https://developer.mozilla.org/en-US/docs/Web/JavaScript` | HTTP(S) stays in the WebView; progress and readable text should appear without login.                          | Retry and open in the system browser if loading fails.                          |
+| Medium-style article  | `https://medium.com/`                                     | Redirects and script-heavy loading remain HTTP(S); the host may show a sign-in prompt or omit article content. | Record redirects/content availability; browser fallback remains available.      |
+| Public YouTube video  | `https://www.youtube.com/watch?v=dQw4w9WgXcQ`             | Player shell and playback may work, or consent/age/region UI may appear.                                       | Record media/access observation; open in browser if the player is incompatible. |
+| Login/paywall example | `https://www.nytimes.com/`                                | HTTP(S) navigation is allowed, but login, paywall, challenge, or partial content is expected to be possible.   | Never enter credentials; record access UI and use browser fallback.             |
+
+The probe also exercises the policy branches for ordinary HTTP(S), blocked unsafe schemes such as
+`javascript:`/`file:`, and external schemes such as `mailto:` or `tel:`. Native validation is still
+open: run the matrix on an Android emulator and then on at least one Android physical device with
+network access, recording device/build versions and observed behavior without private page content.
+Until that record exists, compatibility of these representative sites is not claimed.
 
 ## Timer and lifecycle handling
 

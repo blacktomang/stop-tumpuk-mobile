@@ -36,6 +36,14 @@ The working sequencing assumption is Android first for implementation and valida
 - **Verification:** Android emulator check followed by at least one Android physical-device check with network access. Capture source URLs and observed behavior without logging private content.
 - **Complete when:** The team has a written allow/fallback matrix and confirms that the proposed WebView boundary is viable before building all reading screens. Unsupported sites are documented rather than promised.
 
+**Implementation note (probe ready; validation open):** The development-build probe is available at
+`/webview-probe`. It uses the pure policy in `src/application/webview-policy.ts`, records loading,
+progress, redirects, media/access observations, errors, blocked schemes, external-scheme hand-offs,
+and browser fallback in `src/features/reading/webview-feasibility.ts`. The source matrix and expected
+observations are recorded in [SYSTEM_DESIGN.md](SYSTEM_DESIGN.md). Android emulator and Android
+physical-device checks remain open; this task is intentionally not checked off until those checks
+produce an evidence record.
+
 ### NATIVE-003 — Audit reusable logic and native assumptions
 
 - [x] **FR references:** FR-03, FR-04, FR-07, FR-13, FR-15.

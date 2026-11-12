@@ -205,6 +205,12 @@ export default function HomeScreen() {
                 >
                   <Text style={styles.settingsLink}>Data</Text>
                 </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => router.push("/webview-probe")}
+                >
+                  <Text style={styles.settingsLink}>WebView probe</Text>
+                </Pressable>
               </View>
             </View>
             <Text style={styles.title}>Make room to finish.</Text>
