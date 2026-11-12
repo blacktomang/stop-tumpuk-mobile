@@ -1,0 +1,10 @@
+node_modules/
+.expo/
+dist/
+coverage/
+*.log
+.DS_Store
+
+# Historical web snapshot is evidence only and stays outside native tooling.
+reference/web/node_modules/
+reference/web/dist/
