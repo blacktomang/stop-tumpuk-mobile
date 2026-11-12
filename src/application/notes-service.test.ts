@@ -115,6 +115,25 @@ describe("native notes service", () => {
     expect(await service.search("idea", "material-2")).toEqual([]);
   });
 
+  it("reloads notes for a finished material without losing the association", async () => {
+    const state = repositories();
+    const service = createNotesService(dependencies(state.repos));
+    const first = await service.create("finished-material", "Keep this note");
+
+    state.notes.push({
+      id: "note-reloaded",
+      materialId: "finished-material",
+      content: "Loaded after the finished view reopened",
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    });
+
+    expect(await service.list("finished-material")).toEqual([
+      first,
+      state.notes[1],
+    ]);
+  });
+
   it("rejects empty content and missing note IDs", async () => {
     const service = createNotesService(dependencies(repositories().repos));
 

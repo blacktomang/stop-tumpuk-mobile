@@ -15,6 +15,7 @@ import {
 } from "react-native";
 
 import { createLifecycleService } from "../src/application/lifecycle-service";
+import { createNotesService } from "../src/application/notes-service";
 import {
   createMaterialManagementService,
   searchMaterials,
@@ -30,7 +31,7 @@ import {
 import { estimatedSeconds, formatDuration } from "../src/domain";
 import { openNativeRepositories } from "../src/storage/sqlite/expo-sqlite-adapter";
 import type { NativeRepositories } from "../src/storage/sqlite/repositories";
-import type { Material, MaterialType } from "../src/types";
+import type { Material, MaterialType, Note } from "../src/types";
 
 const colors = {
   ink: "#17211B",
@@ -276,6 +277,7 @@ export default function MaterialsScreen() {
                 expanded={expandedId === material.id}
                 key={material.id}
                 material={material}
+                repositories={repositories!}
                 onAction={(action) => void performAction(material, action)}
                 onToggleAdvanced={() =>
                   setExpandedId((current) =>
@@ -299,11 +301,13 @@ export default function MaterialsScreen() {
 function MaterialCard({
   expanded,
   material,
+  repositories,
   onAction,
   onToggleAdvanced,
 }: {
   expanded: boolean;
   material: Material;
+  repositories: NativeRepositories;
   onAction: (action: MaterialAction) => void;
   onToggleAdvanced: () => void;
 }) {
@@ -320,6 +324,7 @@ function MaterialCard({
       <Text numberOfLines={1} style={styles.domain}>
         {material.domain}
       </Text>
+      <NotesPanel material={material} repositories={repositories} />
       <View style={styles.cardActions}>
         <Pressable
           accessibilityRole="button"
@@ -367,6 +372,225 @@ function MaterialCard({
           ))}
         </View>
       ) : null}
+    </View>
+  );
+}
+
+function NotesPanel({
+  material,
+  repositories,
+}: {
+  material: Material;
+  repositories: NativeRepositories;
+}) {
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [query, setQuery] = useState("");
+  const [editing, setEditing] = useState<Note | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [draft, setDraft] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  async function loadNotes() {
+    setLoading(true);
+    setError(null);
+    try {
+      const service = createNotesService({
+        repositories,
+        generateId: randomUUID,
+        now: () => new Date().toISOString(),
+      });
+      setNotes(await service.search(query, material.id));
+    } catch {
+      setError("Notes could not be loaded.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadNotes();
+    // The query and material ID intentionally trigger a fresh repository read.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [material.id, query, repositories]);
+
+  function openNewNote() {
+    setEditing(null);
+    setDraft("");
+    setEditorOpen(true);
+  }
+
+  function openEditNote(note: Note) {
+    setEditing(note);
+    setDraft(note.content);
+    setEditorOpen(true);
+  }
+
+  async function saveNote() {
+    try {
+      const service = createNotesService({
+        repositories,
+        generateId: randomUUID,
+        now: () => new Date().toISOString(),
+      });
+      if (editing) {
+        await service.update(editing.id, draft);
+      } else {
+        await service.create(material.id, draft);
+      }
+      setEditorOpen(false);
+      await loadNotes();
+    } catch (nextError) {
+      setError(
+        nextError instanceof Error
+          ? nextError.message
+          : "Note could not be saved.",
+      );
+    }
+  }
+
+  function confirmDelete(note: Note) {
+    Alert.alert("Delete note?", "This note will be removed permanently.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: () => void deleteNote(note),
+      },
+    ]);
+  }
+
+  async function deleteNote(note: Note) {
+    try {
+      await createNotesService({
+        repositories,
+        generateId: randomUUID,
+        now: () => new Date().toISOString(),
+      }).delete(note.id);
+      await loadNotes();
+    } catch {
+      setError("Note could not be deleted.");
+    }
+  }
+
+  return (
+    <View style={styles.notesPanel}>
+      <View style={styles.notesHeader}>
+        <Text style={styles.notesTitle}>Notes</Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={openNewNote}
+          style={({ pressed }) => [
+            styles.newNoteButton,
+            pressed && styles.pressed,
+          ]}
+        >
+          <Text style={styles.newNoteText}>New note</Text>
+        </Pressable>
+      </View>
+      <TextInput
+        accessibilityLabel={`Search notes for ${material.title}`}
+        autoCapitalize="sentences"
+        onChangeText={setQuery}
+        placeholder="Search notes"
+        placeholderTextColor="#9AA59B"
+        style={styles.noteSearch}
+        value={query}
+      />
+      {loading ? <Text style={styles.muted}>Loading notes…</Text> : null}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
+      {!loading && !error && notes.length === 0 ? (
+        <Text style={styles.noteEmpty}>
+          {query ? "No notes match this search." : "No notes yet."}
+        </Text>
+      ) : null}
+      {notes.map((note) => (
+        <View key={note.id} style={styles.noteRow}>
+          <Text style={styles.noteContent}>{note.content}</Text>
+          <View style={styles.noteActions}>
+            <Pressable
+              accessibilityLabel={`Edit note: ${note.content}`}
+              accessibilityRole="button"
+              onPress={() => openEditNote(note)}
+              style={({ pressed }) => [
+                styles.noteAction,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.noteActionText}>Edit</Text>
+            </Pressable>
+            <Pressable
+              accessibilityLabel={`Delete note: ${note.content}`}
+              accessibilityRole="button"
+              onPress={() => confirmDelete(note)}
+              style={({ pressed }) => [
+                styles.noteAction,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={[styles.noteActionText, styles.dangerText]}>
+                Delete
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      ))}
+      <Modal
+        accessibilityViewIsModal
+        animationType="slide"
+        onRequestClose={() => setEditorOpen(false)}
+        visible={editorOpen}
+      >
+        <ScrollView
+          contentContainerStyle={styles.modalContent}
+          style={styles.screen}
+        >
+          <View style={styles.modalHeader}>
+            <View>
+              <Text style={styles.eyebrow}>
+                {editing ? "EDIT NOTE" : "NEW NOTE"}
+              </Text>
+              <Text style={styles.modalTitle}>
+                {editing ? "Refine the thought." : "Keep the thought."}
+              </Text>
+            </View>
+            <Pressable
+              accessibilityLabel="Close note editor"
+              accessibilityRole="button"
+              onPress={() => setEditorOpen(false)}
+            >
+              <Text style={styles.closeText}>Close</Text>
+            </Pressable>
+          </View>
+          <TextInput
+            accessibilityLabel="Note text"
+            autoFocus
+            multiline
+            onChangeText={setDraft}
+            placeholder="Write a plain-text note"
+            placeholderTextColor="#9AA59B"
+            style={styles.noteEditor}
+            textAlignVertical="top"
+            value={draft}
+          />
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void saveNote()}
+            style={({ pressed }) => [styles.primary, pressed && styles.pressed]}
+          >
+            <Text style={styles.primaryText}>
+              {editing ? "Save note" : "Add note"}
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setEditorOpen(false)}
+            style={styles.cancelButton}
+          >
+            <Text style={styles.advancedText}>Cancel</Text>
+          </Pressable>
+        </ScrollView>
+      </Modal>
     </View>
   );
 }
@@ -666,6 +890,53 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   domain: { color: colors.muted, fontSize: 13 },
+  notesPanel: {
+    backgroundColor: colors.paper,
+    borderRadius: 11,
+    gap: 8,
+    padding: 10,
+  },
+  notesHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  notesTitle: { color: colors.ink, fontSize: 15, fontWeight: "800" },
+  newNoteButton: {
+    borderColor: colors.accent,
+    borderRadius: 8,
+    borderWidth: 1,
+    minHeight: 36,
+    justifyContent: "center",
+    paddingHorizontal: 10,
+  },
+  newNoteText: { color: colors.accent, fontSize: 13, fontWeight: "800" },
+  noteSearch: {
+    backgroundColor: colors.panel,
+    borderColor: colors.line,
+    borderRadius: 8,
+    borderWidth: 1,
+    color: colors.ink,
+    fontSize: 14,
+    minHeight: 40,
+    paddingHorizontal: 10,
+  },
+  noteEmpty: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  noteRow: {
+    borderTopColor: colors.line,
+    borderTopWidth: 1,
+    gap: 7,
+    paddingTop: 9,
+  },
+  noteContent: { color: colors.ink, fontSize: 14, lineHeight: 20 },
+  noteActions: { flexDirection: "row", gap: 5 },
+  noteAction: {
+    borderRadius: 6,
+    minHeight: 32,
+    justifyContent: "center",
+    paddingHorizontal: 8,
+  },
+  noteActionText: { color: colors.accent, fontSize: 12, fontWeight: "700" },
   cardActions: { flexDirection: "row", gap: 8, marginTop: 3 },
   primary: {
     alignItems: "center",
@@ -747,6 +1018,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 50,
     paddingHorizontal: 13,
+  },
+  noteEditor: {
+    backgroundColor: colors.panel,
+    borderColor: colors.line,
+    borderRadius: 9,
+    borderWidth: 1,
+    color: colors.ink,
+    fontSize: 16,
+    minHeight: 180,
+    padding: 13,
   },
   choiceRow: { flexDirection: "row", gap: 8 },
   choice: {
