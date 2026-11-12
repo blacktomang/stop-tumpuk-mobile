@@ -59,7 +59,7 @@ produce an evidence record.
 - [x] **FR references:** FR-03, FR-04, FR-05, FR-06, FR-07, FR-10, FR-13.
 - **Dependencies:** NATIVE-003.
 - **Deliverable:** Native source layout, strict types, runtime validators, and preserved pure functions for estimates, capacity, recommendations, URL handling, lifecycle, notes, and availability reminders.
-- **Verification:** Focused Vitest run for `src/domain.test.ts` and `src/validation.test.ts` using the temporary verified dependency tree; 18 tests passed. The root dependency install remains open.
+- **Verification:** Focused and full root Vitest runs pass without React Native, Expo modules, SQLite, Dexie, or browser globals in the pure domain/validation modules; root dependency installation and lockfile are committed.
 - **Complete when:** Domain tests pass without importing React Native, Expo modules, SQLite, Dexie, or browser globals.
 
 ### NATIVE-011 — Create SQLite schema and repository interfaces
@@ -262,7 +262,7 @@ produce an evidence record.
 
 - **NATIVE-001:** Temporary Expo SDK 58 scaffold resolved with pnpm; `expo-doctor` passed 20/20 checks. Root `package.json`, `app.json`, `tsconfig.json`, Expo Router routes, `vitest.config.ts`, and the active root `pnpm-lock.yaml` are committed. Direct root TypeScript verification passes; development-build and device validation remain open.
 - **NATIVE-003:** The source audit and native runtime audit are captured in [SYSTEM_DESIGN.md](SYSTEM_DESIGN.md); copied pure logic and browser-specific rewrite boundaries are identified.
-- **NATIVE-010:** Runtime validators and pure domain rules exist under `src/`; strict TypeScript and focused/full automated tests pass. The remaining work is wiring those boundaries into the native screens and runtime adapters.
+- **NATIVE-010:** Runtime validators and pure domain rules exist under `src/`; strict TypeScript and focused/full automated tests pass. Native screen/runtime adapter wiring is implemented for the current scope; native persistence/device checks remain open.
 - **NATIVE-011:** The SQLite schema/migration metadata, typed repository interfaces, and isolated `expo-sqlite` adapter exist under `src/storage/sqlite/`; automated schema checks pass, while native build/runtime persistence checks remain open.
 - **NATIVE-012:** The dependency-free transfer validator, serializer, additive conflict preview, and repository-backed transactional import application exist under `src/application/data-transfer.ts`; focused transfer tests pass, while native SQLite persistence wiring remains open.
 - **NATIVE-002:** The `/webview-probe` development-build route, representative source matrix, policy evidence model, loading/error state, and browser fallback are committed; Android emulator and physical-device observations remain open.
