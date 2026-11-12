@@ -131,6 +131,12 @@ export default function HomeScreen() {
               <View style={styles.headerActions}>
                 <Pressable
                   accessibilityRole="button"
+                  onPress={() => router.push("/materials")}
+                >
+                  <Text style={styles.settingsLink}>Materials</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
                   onPress={() => router.push("/dashboard")}
                 >
                   <Text style={styles.settingsLink}>Dashboard</Text>

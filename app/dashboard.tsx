@@ -1,5 +1,5 @@
-import { Stack, router } from "expo-router";
-import { useEffect, useState } from "react";
+import { Stack, router, useFocusEffect } from "expo-router";
+import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   TextInput,
@@ -48,7 +48,7 @@ export default function DashboardScreen() {
   const [manualSelection, setManualSelection] =
     useState<ManualSelection | null>(null);
 
-  useEffect(() => {
+  const refreshDashboard = useCallback(() => {
     let mounted = true;
     openNativeRepositories()
       .then(async (repositories) => {
@@ -72,6 +72,8 @@ export default function DashboardScreen() {
       mounted = false;
     };
   }, []);
+
+  useFocusEffect(refreshDashboard);
 
   async function chooseAvailableMinutes(minutes: number) {
     setAvailableMinutes(minutes);
@@ -160,6 +162,17 @@ export default function DashboardScreen() {
                 {capacityProjection(capacity)}
               </Text>
             </View>
+
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push("/materials")}
+              style={({ pressed }) => [
+                styles.secondary,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.secondaryText}>Manage materials</Text>
+            </Pressable>
 
             <Pressable
               accessibilityRole="button"
