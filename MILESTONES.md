@@ -64,7 +64,7 @@ produce an evidence record.
 
 ### NATIVE-011 — Create SQLite schema and repository interfaces
 
-- [ ] **FR references:** FR-05, FR-09, FR-10, FR-13, FR-14.
+- [x] **FR references:** FR-05, FR-09, FR-10, FR-13, FR-14.
 - **Dependencies:** NATIVE-010.
 - **Deliverable:** `expo-sqlite` connection boundary, initial native schema for materials, notes, settings, sessions, events, staged intake, and migration bookkeeping; typed repositories and transactional lifecycle commands.
 - **Verification:** Automated repository tests create a fresh database, insert/read/update/delete records, enforce note foreign keys, persist timer state, and verify transaction rollback.
@@ -72,7 +72,7 @@ produce an evidence record.
 
 ### NATIVE-012 — Separate backup validation from storage
 
-- [ ] **FR references:** FR-13.
+- [x] **FR references:** FR-13.
 - **Dependencies:** NATIVE-010, NATIVE-011.
 - **Deliverable:** Runtime-independent current-format web-backup parser, serializer, record validators, ID/reference checks, conflict preview model, and native transfer service that calls repositories. Remove any direct Dexie dependency from reusable transfer code.
 - **Verification:** Automated tests cover malformed JSON, unsupported/future versions, invalid URLs/statuses/numbers/references, stable IDs, multiple notes, conflict counts, and no-write-on-validation-failure.
@@ -80,7 +80,7 @@ produce an evidence record.
 
 ### NATIVE-013 — Implement additive, atomic web-backup import/export
 
-- [ ] **FR references:** FR-10, FR-13, FR-14.
+- [x] **FR references:** FR-10, FR-13, FR-14.
 - **Dependencies:** NATIVE-012.
 - **Deliverable:** Current web export envelope import into SQLite, preserving material/note IDs, associations, estimates, settings, sessions, and history; native export that omits disposable share intake and credentials.
 - **Verification:** Automated round-trip, conflict-preview, duplicate-ID, interrupted-transaction, and unsupported-format tests. Confirm old browser IndexedDB is not accessed directly.
@@ -88,7 +88,7 @@ produce an evidence record.
 
 ### NATIVE-014 — Verify migration and recovery policy
 
-- [ ] **FR references:** FR-13.
+- [x] **FR references:** FR-13.
 - **Dependencies:** NATIVE-011, NATIVE-013.
 - **Deliverable:** Versioned migration runner, supported-schema policy, upgrade failure/recovery path, and fixture set for zero/unknown estimates, multiple notes, timer state, and event associations.
 - **Verification:** Automated upgrades from each supported released schema, skipped-version upgrade, forced failure rollback, repeat-open persistence, and backup-before-risky-change checks.
@@ -264,13 +264,13 @@ produce an evidence record.
 - **NATIVE-003:** The source audit and native runtime audit are captured in [SYSTEM_DESIGN.md](SYSTEM_DESIGN.md); copied pure logic and browser-specific rewrite boundaries are identified.
 - **NATIVE-010:** Runtime validators and pure domain rules exist under `src/`; strict TypeScript and focused/full automated tests pass. Native screen/runtime adapter wiring is implemented for the current scope; native persistence/device checks remain open.
 - **NATIVE-011:** The SQLite schema/migration metadata, typed repository interfaces, isolated `expo-sqlite` adapter, and mocked CRUD/transaction boundary tests exist under `src/storage/sqlite/`; native build/runtime persistence checks remain open.
-- **NATIVE-012:** The dependency-free transfer validator, serializer, additive conflict preview, and repository-backed transactional import application exist under `src/application/data-transfer.ts`; focused transfer tests pass, while native SQLite persistence wiring remains open.
+- **NATIVE-012:** The dependency-free transfer validator, serializer, additive conflict preview, and repository-backed transactional import application exist under `src/application/data-transfer.ts`; focused transfer tests cover malformed input, conflicts, unsupported formats, interrupted rollback, and no-write guarantees.
 - **NATIVE-002:** The `/webview-probe` development-build route, representative source matrix, policy evidence model, loading/error state, and browser fallback are committed; Android emulator and physical-device observations remain open.
 - **NATIVE-040:** Native reading route, HTTP(S)-only URL boundary, title/estimate/source header, progress, retry/error state, and browser fallback are committed; Android/iOS runtime behavior remains open.
 - **NATIVE-041:** WebView navigation isolation, unsafe-scheme blocking, external-scheme handoff, browser fallback, and no-bridge boundary documentation are committed; emulator/physical-device navigation checks remain open.
 - **NATIVE-042:** Explicit Finish from the reading route now uses transactional lifecycle service, returns to Materials, refreshes state, and never infers completion from WebView or timer events; device flow checks remain open.
 - **NATIVE-014:** Versioned migration initialization, repeat-open persistence, skipped-version, newer-schema rejection, rollback, and no-reset tests exist under `src/storage/sqlite/`; native runtime recovery checks remain open.
-- **NATIVE-013:** Additive transfer validation/import and repository-backed export are committed under `src/application/data-transfer.ts`; native file-picker/filesystem UI and SQLite round-trip checks remain open.
+- **NATIVE-013:** Additive transfer validation/import, repository-backed export, native file-picker/filesystem UI, and mocked SQLite current-format round-trip coverage are committed; native file-provider behavior remains open for device validation.
 - **NATIVE-020:** A repository-injected native capture service and destination-aware capture route exist under `src/application/capture-service.ts` and `app/index.tsx`, covering save-first capture, duplicate retry, staged-share consumption, and optional enrichment; native persistence/device checks remain open.
 - **NATIVE-033/NATIVE-042:** Lifecycle commands and UI wiring for commit, start, finish, reopen, return to Inbox, archive, and delete are committed; runtime persistence/device checks remain open.
 - **NATIVE-033:** Native Materials route, status views, search/filter, editing, lifecycle actions, advanced-action grouping, and delete confirmation are committed; emulator/device persistence checks remain open.
@@ -284,7 +284,7 @@ produce an evidence record.
 - **NATIVE-061:** The current Expo SDK target has no iOS Share Extension/App Group configuration. iOS `expo-sharing` handoffs are routed to explicit URL-paste guidance without reading or staging payloads; iOS share-menu support is not claimed and physical-device verification remains open.
 - **NATIVE-071:** Android release validation is not run in this environment: `adb`, Android emulator tooling, and a connected physical device are unavailable. Fresh-install, restart/offline persistence, WebView matrix, import/export, timer interruption, and native share-menu evidence remain open.
 - **NATIVE-072/NATIVE-073:** iOS simulator/device/store-release validation and the first native release baseline remain blocked on the missing platform toolchains, signing context, and device evidence; no iOS or store support is claimed.
-- **Test record:** Root `pnpm typecheck`, `pnpm test` (26 files, 132 tests), `pnpm lint`, `pnpm format:check`, and `git diff --check` pass against native sources. The native capture fixture covers capture, start, and explicit finish with lifecycle events; mocked SQLite adapter tests cover CRUD and transaction boundaries; transfer tests cover interrupted rollback, unsupported-format no-write behavior, and exclusion of disposable share intake. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
+- **Test record:** Root `pnpm typecheck`, `pnpm test` (26 files, 133 tests), `pnpm lint`, `pnpm format:check`, and `git diff --check` pass against native sources. The native capture fixture covers capture, start, and explicit finish with lifecycle events; mocked SQLite adapter tests cover CRUD, transaction boundaries, and current-format transfer round trips; transfer tests cover interrupted rollback, unsupported-format no-write behavior, and exclusion of disposable share intake. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
 
 ## Historical web verification context
 
