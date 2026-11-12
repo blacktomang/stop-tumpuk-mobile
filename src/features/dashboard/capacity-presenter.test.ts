@@ -73,4 +73,70 @@ describe("capacity presentation", () => {
       "1.5 weeks",
     );
   });
+
+  it("keeps empty, full, and unknown capacity states explicit", () => {
+    expect(
+      presentCapacity(
+        model({
+          state: "empty",
+          activeCount: 0,
+          plannedSeconds: 0,
+          unknownCount: 0,
+          capacitySeconds: 3_600,
+          visualFraction: 0,
+          headroomSeconds: 3_600,
+          clearanceWeeks: 0,
+        }),
+      ),
+    ).toMatchObject({
+      message: "You have room for a fresh commitment this week.",
+      meterValue: 0,
+      meterText: "60 min available",
+    });
+
+    expect(
+      presentCapacity(
+        model({
+          state: "full",
+          plannedSeconds: 3_600,
+          capacitySeconds: 3_600,
+          visualFraction: 1,
+          headroomSeconds: 0,
+          clearanceWeeks: 1,
+        }),
+      ),
+    ).toMatchObject({
+      message: "Your known plan fills this week exactly.",
+      meterValue: 100,
+      meterText: "At capacity",
+    });
+
+    expect(
+      presentCapacity(
+        model({
+          state: "under",
+          plannedSeconds: 0,
+          unknownCount: 2,
+          visualFraction: 0,
+          headroomSeconds: 3_600,
+          clearanceWeeks: 0,
+        }),
+      ).detail,
+    ).toBe("0 min planned · 2 items without an estimate");
+  });
+
+  it("does not invent a clearance projection for zero capacity", () => {
+    expect(
+      capacityProjection(
+        model({
+          state: "zero",
+          capacitySeconds: 0,
+          visualFraction: null,
+          headroomSeconds: null,
+          overflowSeconds: 1_800,
+          clearanceWeeks: null,
+        }),
+      ),
+    ).toBe("There is no clearance estimate until capacity is configured.");
+  });
 });

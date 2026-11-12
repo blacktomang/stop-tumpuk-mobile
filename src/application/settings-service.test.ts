@@ -109,6 +109,62 @@ describe("native settings service", () => {
     expect(await due.shouldPrompt()).toBe(true);
   });
 
+  it("clamps an end-of-month reminder and does not prompt before it is due", async () => {
+    const state = repositories();
+    const service = createSettingsService({
+      repositories: state.repos,
+      now: () => new Date("2026-01-31T00:00:00.000Z"),
+    });
+
+    const skipped = await service.skipAvailabilityPrompt();
+
+    expect(skipped.availabilityReminderAt).toBe("2026-04-30T00:00:00.000Z");
+    expect(
+      await createSettingsService({
+        repositories: state.repos,
+        now: () => new Date("2026-04-29T23:59:59.999Z"),
+      }).shouldPrompt(),
+    ).toBe(false);
+    expect(
+      await createSettingsService({
+        repositories: state.repos,
+        now: () => new Date("2026-04-30T00:00:00.000Z"),
+      }).shouldPrompt(),
+    ).toBe(true);
+  });
+
+  it("clears a skipped reminder after saving zero-minute availability", async () => {
+    const state = repositories();
+    const service = createSettingsService({
+      repositories: state.repos,
+      now: () => new Date("2026-11-11T00:00:00.000Z"),
+    });
+
+    await service.skipAvailabilityPrompt();
+    const saved = await service.saveAvailability(0, 0);
+
+    expect(saved).toMatchObject({
+      weekdayMinutes: 0,
+      weekendMinutes: 0,
+      onboardingDismissed: true,
+      availabilityReminderAt: null,
+    });
+    expect(await service.shouldPrompt()).toBe(false);
+  });
+
+  it("prompts when a persisted reminder timestamp is invalid", async () => {
+    const state = repositories({
+      id: "settings",
+      weekdayMinutes: null,
+      weekendMinutes: 30,
+      onboardingDismissed: true,
+      availabilityReminderAt: "not-a-date",
+    });
+    const service = createSettingsService({ repositories: state.repos });
+
+    await expect(service.shouldPrompt()).resolves.toBe(true);
+  });
+
   it("rejects negative, infinite, and NaN minute values before persistence", async () => {
     const state = repositories();
     const service = createSettingsService({ repositories: state.repos });

@@ -57,6 +57,34 @@ function repositories(
 }
 
 describe("planning application service", () => {
+  it("keeps unset and zero capacity distinct at the repository boundary", async () => {
+    await expect(
+      createPlanningService({
+        repositories: repositories([material()], null),
+      }).getCapacity(),
+    ).resolves.toMatchObject({
+      state: "unset",
+      capacitySeconds: null,
+      visualFraction: null,
+      clearanceWeeks: null,
+    });
+
+    await expect(
+      createPlanningService({
+        repositories: repositories(
+          [material({ manualEstimatedSeconds: 0 })],
+          settings({ weekdayMinutes: 0, weekendMinutes: 0 }),
+        ),
+      }).getCapacity(),
+    ).resolves.toMatchObject({
+      state: "zero",
+      capacitySeconds: 0,
+      plannedSeconds: 0,
+      visualFraction: null,
+      clearanceWeeks: null,
+    });
+  });
+
   it("reads settings and materials to produce the capacity view", async () => {
     const service = createPlanningService({
       repositories: repositories([material()], settings()),
@@ -160,6 +188,24 @@ describe("planning application service", () => {
     await expect(service.selectManual("unknown")).resolves.toMatchObject({
       material: { id: "unknown" },
       estimatedSeconds: null,
+    });
+  });
+
+  it("allows a known zero-minute item to fit zero available time", async () => {
+    const service = createPlanningService({
+      repositories: repositories(
+        [
+          material({ id: "zero", manualEstimatedSeconds: 0 }),
+          material({ id: "unknown", sourceDurationSeconds: null }),
+        ],
+        settings(),
+      ),
+    });
+
+    await expect(service.recommend(0)).resolves.toMatchObject({
+      primary: { id: "zero" },
+      partial: null,
+      manual: [{ id: "zero" }, { id: "unknown" }],
     });
   });
 
