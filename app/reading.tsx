@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   Linking,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -111,7 +110,7 @@ export default function ReadingScreen() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [params.materialId]);
 
   useEffect(() => {
     if (!repositories || typeof params.materialId !== "string") return;

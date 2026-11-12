@@ -1,8 +1,4 @@
-import {
-  openDatabaseAsync,
-  type SQLiteBindValue,
-  type SQLiteDatabase,
-} from "expo-sqlite";
+import { openDatabaseAsync, type SQLiteBindValue } from "expo-sqlite";
 
 import type {
   CaptureIntake,
