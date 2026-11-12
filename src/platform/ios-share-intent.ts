@@ -9,7 +9,13 @@ export interface NativeIntentPath {
  * expo-sharing paths, but never pretend that their payload can be received.
  */
 export function isExpoSharingPath(path: string): boolean {
-  return path.includes("expo-sharing");
+  const normalized = path.trim();
+  if (normalized === "expo-sharing") return true;
+
+  // Expo Router delivers the synthetic handoff as a custom-scheme URI such
+  // as `stoptumpuk://expo-sharing`. Match only that URI authority; ordinary
+  // routes and query values containing the marker must pass through.
+  return /^stoptumpuk:\/\/expo-sharing(?:[?#].*)?$/i.test(normalized);
 }
 
 export function createIosShareIntentRedirector() {
