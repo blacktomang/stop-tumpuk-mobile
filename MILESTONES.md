@@ -267,6 +267,7 @@ produce an evidence record.
 - **NATIVE-012:** The dependency-free transfer validator, serializer, additive conflict preview, and repository-backed transactional import application exist under `src/application/data-transfer.ts`; focused transfer tests pass, while native SQLite persistence wiring remains open.
 - **NATIVE-002:** The `/webview-probe` development-build route, representative source matrix, policy evidence model, loading/error state, and browser fallback are committed; Android emulator and physical-device observations remain open.
 - **NATIVE-040:** Native reading route, HTTP(S)-only URL boundary, title/estimate/source header, progress, retry/error state, and browser fallback are committed; Android/iOS runtime behavior remains open.
+- **NATIVE-041:** WebView navigation isolation, unsafe-scheme blocking, external-scheme handoff, browser fallback, and no-bridge boundary documentation are committed; emulator/physical-device navigation checks remain open.
 - **NATIVE-014:** Versioned migration initialization, repeat-open persistence, skipped-version, newer-schema rejection, rollback, and no-reset tests exist under `src/storage/sqlite/`; native runtime recovery checks remain open.
 - **NATIVE-013:** Additive transfer validation/import and repository-backed export are committed under `src/application/data-transfer.ts`; native file-picker/filesystem UI and SQLite round-trip checks remain open.
 - **NATIVE-020:** A repository-injected native capture service and destination-aware capture route exist under `src/application/capture-service.ts` and `app/index.tsx`, covering save-first capture, duplicate retry, staged-share consumption, and optional enrichment; native persistence/device checks remain open.
@@ -276,11 +277,12 @@ produce an evidence record.
 - **NATIVE-052:** Native import/export route, conflict preview, rejected-file handling, atomic import messaging, and local-only guidance are committed; emulator/iOS file-provider checks remain open.
 - **NATIVE-060:** Android share payload parsing, staged intake handoff, consumed-intake protection, native-intent routing, and malformed/unavailable fallback are committed; installed-build/emulator/physical-device share checks remain open.
 - **NATIVE-051:** The fixed 25-minute timer service, elapsed/expiry rules, and valid pause/resume/end transition guards exist under `src/application/timer-service.ts`; AppState and native interruption wiring remain open.
+- **NATIVE-051:** The persisted timer controller/presenter now wires AppState foreground refresh, interval cleanup, start/pause/resume/end, and expiry recovery UI; emulator/physical-device interruption checks remain open.
 - **NATIVE-030:** Settings/availability persistence, reminder decisions, and native settings screen exist under `src/application/settings-service.ts` and `app/settings.tsx`; emulator restart/offline checks remain open.
 - **NATIVE-031/NATIVE-032:** Repository-backed capacity and recommendation application boundaries exist under `src/application/planning-service.ts`; the accessible capacity dashboard, 5/15/30/custom minute input, deterministic recommendation, partial-session state, and manual/unknown selection UI are committed. Emulator/device checks remain open.
 - **NATIVE-041:** Pure WebView navigation and external-fallback policy exists under `src/application/webview-policy.ts`; native WebView callbacks, isolation configuration, and device behavior remain open.
 - **NATIVE-061:** The current Expo SDK target has no iOS Share Extension/App Group configuration. iOS `expo-sharing` handoffs are routed to explicit URL-paste guidance without reading or staging payloads; iOS share-menu support is not claimed and physical-device verification remains open.
-- **Test record:** Root `pnpm typecheck`, `pnpm test` (23 files, 113 tests), `pnpm format:check`, and `git diff --check` pass against native sources. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
+- **Test record:** Root `pnpm typecheck`, `pnpm test` (25 files, 125 tests), `pnpm format:check`, and `git diff --check` pass against native sources. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
 
 ## Historical web verification context
 
