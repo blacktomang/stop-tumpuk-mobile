@@ -46,16 +46,7 @@ describe("metadata adapter", () => {
 
   it("turns timeout, cancellation, and offline failures into retryable typed failures", async () => {
     const timeout = createMetadataAdapter(
-      async (_material, signal) =>
-        new Promise((_resolve, reject) => {
-          signal.addEventListener(
-            "abort",
-            () => reject(new DOMException("aborted", "AbortError")),
-            {
-              once: true,
-            },
-          );
-        }),
+      async () => new Promise(() => undefined),
       { timeoutMs: 1 },
     );
     await expect(timeout(material)).rejects.toMatchObject({
@@ -68,6 +59,14 @@ describe("metadata adapter", () => {
     });
     await expect(offline(material)).rejects.toMatchObject({
       code: "offline",
+      retryable: true,
+    });
+
+    const providerError = createMetadataAdapter(async () => {
+      throw new Error("provider exploded");
+    });
+    await expect(providerError(material)).rejects.toMatchObject({
+      code: "http",
       retryable: true,
     });
 

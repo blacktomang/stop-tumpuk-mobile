@@ -258,8 +258,24 @@ export function createMetadataAdapter(
       );
     }
     const timeout = createTimeoutSignal(timeoutMs, options.signal);
+    let rejectOnAbort: (() => void) | undefined;
+    const aborted = new Promise<never>((_, reject) => {
+      rejectOnAbort = () =>
+        reject(
+          new MetadataProviderError(
+            options.signal?.aborted ? "aborted" : "timeout",
+            options.signal?.aborted
+              ? "Metadata request was cancelled."
+              : "Metadata request timed out.",
+          ),
+        );
+      timeout.signal.addEventListener("abort", rejectOnAbort, { once: true });
+    });
     try {
-      const output = await provider(material, timeout.signal);
+      const output = await Promise.race([
+        provider(material, timeout.signal),
+        aborted,
+      ]);
       return validatePatch(output);
     } catch (error) {
       if (error instanceof MetadataProviderError) throw error;
@@ -283,6 +299,9 @@ export function createMetadataAdapter(
         );
       throw new MetadataProviderError("http", "Metadata provider failed.");
     } finally {
+      if (rejectOnAbort) {
+        timeout.signal.removeEventListener("abort", rejectOnAbort);
+      }
       timeout.dispose();
     }
   };
