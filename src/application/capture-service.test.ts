@@ -213,4 +213,91 @@ describe("native capture service", () => {
       sourceDurationSeconds: null,
     });
   });
+
+  it("keeps the saved capture durable when enrichment fails", async () => {
+    const state = repositories();
+    const enrichMetadata = async () => {
+      throw new Error("provider unavailable");
+    };
+    const service = createCaptureService({
+      ...dependencies(state.repos),
+      enrichMetadata,
+    });
+
+    const result = await service.captureUrl(
+      "https://example.com/provider-fails",
+      "queued",
+    );
+
+    expect(result.kind).toBe("saved");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(state.materials).toHaveLength(1);
+    expect(state.materials[0]).toMatchObject({
+      originalUrl: "https://example.com/provider-fails",
+      status: "queued",
+      sourceDurationSeconds: null,
+      sourceDurationProvenance: "unknown",
+      sourceDurationCompleteness: "unknown",
+    });
+    expect(state.events.map((event) => event.type)).toEqual([
+      "captured",
+      "queued",
+    ]);
+  });
+
+  it("does not apply late enrichment to a deleted capture", async () => {
+    let releaseProvider: ((value: unknown) => void) | undefined;
+    const provider = createMetadataAdapter(
+      () =>
+        new Promise((resolve) => {
+          releaseProvider = resolve;
+        }),
+    );
+    const state = repositories();
+    const service = createCaptureService({
+      ...dependencies(state.repos),
+      enrichMetadata: provider,
+    });
+
+    const result = await service.captureUrl(
+      "https://example.com/deleted-before-enrichment",
+      "queued",
+    );
+    expect(result.kind).toBe("saved");
+    const capturedId = state.materials[0]!.id;
+    await state.repos.materials.delete(capturedId);
+    state.materials.splice(0, 1);
+
+    releaseProvider?.({
+      title: "Provider title",
+      sourceDurationSeconds: 900,
+      sourceDurationProvenance: "publisher-estimate",
+      sourceDurationCompleteness: "full",
+    });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(state.materials).toEqual([]);
+  });
+
+  it("does not start enrichment when the save transaction fails", async () => {
+    const state = repositories();
+    let enrichmentStarted = false;
+    state.repos.materials.insert = async () => {
+      throw new Error("storage unavailable");
+    };
+    const service = createCaptureService({
+      ...dependencies(state.repos),
+      enrichMetadata: async () => {
+        enrichmentStarted = true;
+        return { title: "should not be written" };
+      },
+    });
+
+    await expect(
+      service.captureUrl("https://example.com/storage-fails", "inbox"),
+    ).rejects.toThrow("storage unavailable");
+    expect(enrichmentStarted).toBe(false);
+    expect(state.materials).toEqual([]);
+    expect(state.events).toEqual([]);
+  });
 });

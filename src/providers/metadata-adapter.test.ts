@@ -95,4 +95,37 @@ describe("metadata adapter", () => {
       retryable: false,
     });
   });
+
+  it.each([
+    {
+      name: "missing provenance",
+      output: {
+        sourceDurationSeconds: 12,
+        sourceDurationCompleteness: "full",
+      },
+    },
+    {
+      name: "unknown duration marked full",
+      output: {
+        sourceDurationSeconds: null,
+        sourceDurationProvenance: "unknown",
+        sourceDurationCompleteness: "full",
+      },
+    },
+    {
+      name: "known duration marked unknown",
+      output: {
+        sourceDurationSeconds: 12,
+        sourceDurationProvenance: "unknown",
+        sourceDurationCompleteness: "full",
+      },
+    },
+  ])("rejects malformed duration output: $name", async ({ output }) => {
+    const adapter = createMetadataAdapter(async () => output);
+
+    await expect(adapter(material)).rejects.toMatchObject({
+      code: "malformed",
+      retryable: false,
+    });
+  });
 });
