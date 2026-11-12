@@ -263,10 +263,10 @@ The working sequencing assumption is Android first for implementation and valida
 - **NATIVE-051:** The fixed 25-minute timer service, elapsed/expiry rules, and valid pause/resume/end transition guards exist under `src/application/timer-service.ts`; AppState and native interruption wiring remain open.
 - **NATIVE-050:** Plain-text note create/update/delete/list/search exists under `src/application/notes-service.ts`; UI wiring remains open.
 - **NATIVE-030:** Settings/availability persistence and reminder decisions exist under `src/application/settings-service.ts`; native settings screens and runtime notification scheduling remain open.
-- **NATIVE-031/NATIVE-032:** Repository-backed capacity and recommendation application boundaries exist under `src/application/planning-service.ts`; the accessible capacity dashboard and presentation tests are committed, while minute-input/manual-selection UI remains open.
+- **NATIVE-031/NATIVE-032:** Repository-backed capacity and recommendation application boundaries exist under `src/application/planning-service.ts`; the accessible capacity dashboard, 5/15/30/custom minute input, deterministic recommendation, partial-session state, and manual/unknown selection UI are committed. Emulator/device checks remain open.
 - **NATIVE-041:** Pure WebView navigation and external-fallback policy exists under `src/application/webview-policy.ts`; native WebView callbacks, isolation configuration, and device behavior remain open.
 - **NATIVE-060:** Dependency-free shared URL/text validation and staged capture-intake persistence exist under `src/application/share-intake-service.ts`; Android/iOS platform share integrations and development-build checks remain open.
-- **Test record:** Root `pnpm typecheck`, `pnpm test` (15 files, 86 tests), `pnpm format:check`, and `git diff --check` pass against native sources. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
+- **Test record:** Root `pnpm typecheck`, `pnpm test` (15 files, 91 tests), `pnpm format:check`, and `git diff --check` pass against native sources. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
 
 ## Historical web verification context
 
