@@ -14,16 +14,30 @@
         {
           "android": {
             "enabled": true,
-            "singleShareMimeTypes": ["text/plain", "text/uri-list"]
+            "singleShareMimeTypes": [
+              "text/plain",
+              "text/uri-list"
+            ]
           }
         }
       ]
     ],
     "android": {
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.arifsaqa.stoptumpuk"
     },
     "ios": {
       "supportsTablet": true
+    },
+    "extra": {
+      "router": {
+        "asyncRoutes": {
+          "web": true
+        }
+      },
+      "eas": {
+        "projectId": "5fd9e8b0-ae97-4302-a6c1-01d451b91806"
+      }
     }
   }
 }
