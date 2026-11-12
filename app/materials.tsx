@@ -1,6 +1,6 @@
 import { randomUUID } from "expo-crypto";
-import { router, Stack } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { router, Stack, useFocusEffect } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -56,22 +56,25 @@ export default function MaterialsScreen() {
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function load(nextRepositories = repositories) {
-    if (!nextRepositories) return;
-    setLoading(true);
-    try {
-      setMaterials(
-        await createMaterialManagementService({
-          repositories: nextRepositories,
-          now: () => new Date().toISOString(),
-        }).list(),
-      );
-    } catch {
-      setMessage("The material list could not be loaded.");
-    } finally {
-      setLoading(false);
-    }
-  }
+  const load = useCallback(
+    async (nextRepositories = repositories) => {
+      if (!nextRepositories) return;
+      setLoading(true);
+      try {
+        setMaterials(
+          await createMaterialManagementService({
+            repositories: nextRepositories,
+            now: () => new Date().toISOString(),
+          }).list(),
+        );
+      } catch {
+        setMessage("The material list could not be loaded.");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [repositories],
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -90,9 +93,13 @@ export default function MaterialsScreen() {
     return () => {
       mounted = false;
     };
-    // The route owns one repository connection for its lifetime.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [load]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (repositories) void load();
+    }, [load, repositories]),
+  );
 
   const visibleMaterials = useMemo(
     () => searchMaterials(materials, filter, query),

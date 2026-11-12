@@ -146,4 +146,18 @@ describe("native lifecycle service", () => {
     await service.delete("material-1");
     expect(state.materials).toHaveLength(0);
   });
+
+  it("reports a failed explicit finish without changing material state", async () => {
+    const state = repositories(material("in-progress"));
+    state.repositories.transaction = async () => {
+      throw new Error("database write failed");
+    };
+    const service = serviceFor(state);
+
+    await expect(service.finish("material-1")).rejects.toThrow(
+      "database write failed",
+    );
+    expect(state.materials[0]?.status).toBe("in-progress");
+    expect(state.events).toHaveLength(0);
+  });
 });

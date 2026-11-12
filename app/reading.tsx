@@ -39,9 +39,11 @@ import {
   timerMessage,
   timerTitle,
 } from "../src/features/reading/timer-presenter";
+import { createLifecycleService } from "../src/application/lifecycle-service";
 import { openNativeRepositories } from "../src/storage/sqlite/expo-sqlite-adapter";
 import { randomUUID } from "expo-crypto";
 import type { NativeRepositories } from "../src/storage/sqlite/repositories";
+import type { MaterialStatus } from "../src/types";
 
 const colors = {
   ink: "#17211B",
@@ -73,6 +75,10 @@ export default function ReadingScreen() {
   const [reloadToken, setReloadToken] = useState(0);
   const [state, setState] = useState<ReadingState>(initialReadingState);
   const [message, setMessage] = useState<string | null>(null);
+  const [materialStatus, setMaterialStatus] = useState<MaterialStatus | null>(
+    null,
+  );
+  const [isFinishing, setIsFinishing] = useState(false);
   const [repositories, setRepositories] = useState<NativeRepositories | null>(
     null,
   );
@@ -86,7 +92,15 @@ export default function ReadingScreen() {
     let mounted = true;
     openNativeRepositories()
       .then((nextRepositories) => {
-        if (mounted) setRepositories(nextRepositories);
+        if (!mounted) return;
+        setRepositories(nextRepositories);
+        if (typeof params.materialId === "string") {
+          void nextRepositories.materials
+            .get(params.materialId)
+            .then((material) => {
+              if (mounted) setMaterialStatus(material?.status ?? null);
+            });
+        }
       })
       .catch(() => {
         if (mounted)
@@ -149,6 +163,35 @@ export default function ReadingScreen() {
       setMessage("Opening the system browser was cancelled.");
     } else if (result.status === "failed") {
       setMessage("The system browser could not open this source.");
+    }
+  }
+
+  async function finishMaterial() {
+    if (!repositories || typeof params.materialId !== "string") {
+      setMessage("This material cannot be finished from the reader.");
+      return;
+    }
+    if (materialStatus !== "queued" && materialStatus !== "in-progress") {
+      setMessage("Only an active Reading plan item can be finished.");
+      return;
+    }
+    setIsFinishing(true);
+    setMessage(null);
+    try {
+      await createLifecycleService({
+        repositories,
+        generateId: randomUUID,
+        now: () => new Date().toISOString(),
+      }).finish(params.materialId);
+      router.back();
+    } catch (error) {
+      setMessage(
+        error instanceof Error
+          ? error.message
+          : "The material could not be finished. Try again.",
+      );
+    } finally {
+      setIsFinishing(false);
     }
   }
 
@@ -292,8 +335,27 @@ export default function ReadingScreen() {
           >
             <Text style={styles.secondaryText}>Open in browser</Text>
           </Pressable>
+          {materialStatus === "queued" || materialStatus === "in-progress" ? (
+            <Pressable
+              accessibilityRole="button"
+              disabled={isFinishing}
+              onPress={() => void finishMaterial()}
+              style={({ pressed }) => [
+                styles.primary,
+                pressed && styles.pressed,
+                isFinishing && styles.disabled,
+              ]}
+            >
+              {isFinishing ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.primaryText}>Finish</Text>
+              )}
+            </Pressable>
+          ) : null}
           <Text style={styles.placeholder}>
-            Finish is explicit and remains available from the material actions.
+            Opening, browsing, scrolling, playback, errors, and timer expiry
+            never finish a material.
           </Text>
         </View>
       </View>
@@ -535,4 +597,5 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   pressed: { opacity: 0.75 },
+  disabled: { opacity: 0.55 },
 });
