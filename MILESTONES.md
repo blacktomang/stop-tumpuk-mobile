@@ -283,7 +283,7 @@ produce an evidence record.
 - **NATIVE-031/NATIVE-032:** Repository-backed capacity and recommendation application boundaries exist under `src/application/planning-service.ts`; the accessible capacity dashboard, 5/15/30/custom minute input, deterministic recommendation, partial-session state, and manual/unknown selection UI are committed. Emulator/device checks remain open.
 - **NATIVE-041:** Pure WebView navigation and external-fallback policy exists under `src/application/webview-policy.ts`; native WebView callbacks, isolation configuration, and device behavior remain open.
 - **NATIVE-061:** The current Expo SDK target has no iOS Share Extension/App Group configuration. iOS `expo-sharing` handoffs are routed to explicit URL-paste guidance without reading or staging payloads; iOS share-menu support is not claimed and physical-device verification remains open.
-- **Test record:** Root `pnpm typecheck`, `pnpm test` (25 files, 126 tests), `pnpm format:check`, and `git diff --check` pass against native sources. Lint is not yet configured; Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
+- **Test record:** Root `pnpm typecheck`, `pnpm test` (25 files, 127 tests), `pnpm format:check`, and `git diff --check` pass against native sources. The native capture fixture now covers capture, start, and explicit finish with lifecycle events. Lint is not configured: `eslint`, `@eslint/js`, `typescript-eslint`, and `globals` are absent from the root dependency tree, and adding them requires package-source access that was not available in this run. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
 
 ## Historical web verification context
 
