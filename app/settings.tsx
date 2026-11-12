@@ -1,4 +1,4 @@
-import { Stack } from "expo-router";
+import { router, Stack } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -177,6 +177,13 @@ export default function SettingsScreen() {
             </Text>
           </View>
         ) : null}
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push("/transfer")}
+          style={({ pressed }) => [styles.secondary, pressed && styles.pressed]}
+        >
+          <Text style={styles.secondaryText}>Import & export data</Text>
+        </Pressable>
       </ScrollView>
     </>
   );

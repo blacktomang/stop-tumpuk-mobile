@@ -147,6 +147,12 @@ export default function HomeScreen() {
                 >
                   <Text style={styles.settingsLink}>Settings</Text>
                 </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => router.push("/transfer")}
+                >
+                  <Text style={styles.settingsLink}>Data</Text>
+                </Pressable>
               </View>
             </View>
             <Text style={styles.title}>Make room to finish.</Text>
