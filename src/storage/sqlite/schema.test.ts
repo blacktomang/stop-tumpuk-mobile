@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyMigrationPlan,
   applyMigrations,
   currentSchemaVersion,
   databaseName,
@@ -60,5 +61,44 @@ describe("native SQLite schema metadata", () => {
     await applyMigrations(database, new Set([1]), "2026-11-12T00:00:00.000Z");
     expect(executed).toEqual([]);
     expect(applied).toEqual([]);
+  });
+
+  it("fills a skipped version without replaying recorded versions", async () => {
+    const applied: number[] = [];
+    const database: SqlMigrationExecutor = {
+      execAsync: async () => undefined,
+      runAsync: async (_sql, ...parameters) => {
+        applied.push(Number(parameters[0]));
+      },
+    };
+    const plan = [
+      { version: 1, statements: ["migration one"] },
+      { version: 2, statements: ["migration two"] },
+      { version: 3, statements: ["migration three"] },
+    ] as const;
+
+    await applyMigrationPlan(database, plan, new Set([1, 3]));
+
+    expect(applied).toEqual([2]);
+  });
+
+  it("rejects malformed migration plans and recorded versions", async () => {
+    const database: SqlMigrationExecutor = {
+      execAsync: async () => undefined,
+      runAsync: async () => undefined,
+    };
+    await expect(
+      applyMigrationPlan(
+        database,
+        [
+          { version: 2, statements: [] },
+          { version: 1, statements: [] },
+        ],
+        new Set(),
+      ),
+    ).rejects.toThrow("strictly increasing");
+    await expect(
+      applyMigrationPlan(database, migrations, new Set([0])),
+    ).rejects.toThrow("positive integers");
   });
 });

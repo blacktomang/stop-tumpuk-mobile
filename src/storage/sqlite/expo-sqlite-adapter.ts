@@ -411,12 +411,10 @@ function createRepositories(
   return repositories;
 }
 
-/** Opens the native database, applies pending migrations atomically, and returns repository boundaries. */
-export async function openNativeRepositories(
-  name = databaseName,
-): Promise<NativeRepositories> {
-  const db = await openDatabaseAsync(name);
-  await db.execAsync("PRAGMA foreign_keys = ON;");
+/** Applies the native schema inside one exclusive transaction. Never resets user data. */
+export async function initializeNativeDatabase(
+  db: RootSqliteConnection,
+): Promise<void> {
   await db.withExclusiveTransactionAsync(async (transaction) => {
     await transaction.execAsync(
       "CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY NOT NULL, applied_at TEXT NOT NULL);",
@@ -425,7 +423,15 @@ export async function openNativeRepositories(
       transaction,
       "SELECT version FROM schema_migrations;",
     );
-    if (rows.some((row) => Number(row.version) > currentSchemaVersion)) {
+    const appliedVersions = rows.map((row) => Number(row.version));
+    if (
+      appliedVersions.some(
+        (version) => !Number.isSafeInteger(version) || version <= 0,
+      )
+    ) {
+      throw new Error("Native database has an invalid schema version");
+    }
+    if (appliedVersions.some((version) => version > currentSchemaVersion)) {
       throw new Error("Native database schema is newer than this app");
     }
     const executor: SqlMigrationExecutor = {
@@ -433,10 +439,16 @@ export async function openNativeRepositories(
       runAsync: (sql, ...parameters) =>
         run(transaction, sql, toBindValues(parameters)),
     };
-    await applyMigrations(
-      executor,
-      new Set(rows.map((row) => Number(row.version))),
-    );
+    await applyMigrations(executor, new Set(appliedVersions));
   });
+}
+
+/** Opens the native database, applies pending migrations atomically, and returns repository boundaries. */
+export async function openNativeRepositories(
+  name = databaseName,
+): Promise<NativeRepositories> {
+  const db = await openDatabaseAsync(name);
+  await db.execAsync("PRAGMA foreign_keys = ON;");
+  await initializeNativeDatabase(db);
   return createRepositories(db, true);
 }
