@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createCaptureService } from "./capture-service";
+import { createMetadataAdapter } from "../providers/metadata-adapter";
 import type { NativeRepositories } from "../storage/sqlite/repositories";
 import type {
   CaptureIntake,
@@ -137,5 +138,42 @@ describe("native capture service", () => {
     expect(result.kind).toBe("saved");
     expect(state.intakes[0]?.consumedAt).toBe(timestamp);
     expect(state.materials[0]?.title).toBe("Shared title");
+  });
+
+  it("keeps a changed title and manual estimate when provider enrichment finishes", async () => {
+    let releaseProvider: ((value: unknown) => void) | undefined;
+    const provider = createMetadataAdapter(
+      () =>
+        new Promise((resolve) => {
+          releaseProvider = resolve;
+        }),
+    );
+    const state = repositories();
+    const service = createCaptureService({
+      ...dependencies(state.repos),
+      enrichMetadata: provider,
+    });
+
+    const result = await service.captureUrl(
+      "https://example.com/article",
+      "queued",
+      { intakeTitle: "Shared title" },
+    );
+    expect(result.kind).toBe("saved");
+    state.materials[0]!.title = "Edited title";
+    state.materials[0]!.manualEstimatedSeconds = 0;
+    releaseProvider?.({
+      title: "Provider title",
+      sourceDurationSeconds: 900,
+      sourceDurationProvenance: "publisher-estimate",
+      sourceDurationCompleteness: "full",
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(state.materials[0]).toMatchObject({
+      title: "Edited title",
+      manualEstimatedSeconds: 0,
+      sourceDurationSeconds: null,
+    });
   });
 });
