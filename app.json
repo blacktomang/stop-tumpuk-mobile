@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "stop-tumpuk",
+    "slug": "stop-tumpuk",
+    "version": "0.1.0",
+    "scheme": "stoptumpuk",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router",
+      "expo-sqlite",
+      [
+        "expo-sharing",
+        {
+          "android": {
+            "enabled": true,
+            "singleShareMimeTypes": ["text/plain", "text/uri-list"]
+          }
+        }
+      ]
+    ],
+    "android": {
+      "predictiveBackGestureEnabled": false
+    },
+    "ios": {
+      "supportsTablet": true
+    }
+  }
+}
