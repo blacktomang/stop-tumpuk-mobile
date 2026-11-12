@@ -105,6 +105,9 @@ describe("native transfer boundary", () => {
     expect(() => parseExport("{not json")).toThrow(
       "Choose a valid stop-tumpuk export file.",
     );
+    expect(() => parseExport(42 as unknown as string)).toThrow(
+      "Choose a valid stop-tumpuk export file.",
+    );
     expect(() =>
       parseExport(JSON.stringify({ ...envelope(), version: 2 })),
     ).toThrow("This export format is not supported.");

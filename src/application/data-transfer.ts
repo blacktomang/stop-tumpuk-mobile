@@ -306,6 +306,8 @@ export function validateEnvelope(value: unknown): ExportEnvelope {
 }
 
 export function parseExport(value: string): ExportEnvelope {
+  if (typeof value !== "string")
+    throw new Error("Choose a valid stop-tumpuk export file.");
   try {
     return validateEnvelope(JSON.parse(value) as unknown);
   } catch (error) {
