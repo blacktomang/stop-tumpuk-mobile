@@ -271,7 +271,8 @@ The working sequencing assumption is Android first for implementation and valida
 - **NATIVE-031/NATIVE-032:** Repository-backed capacity and recommendation application boundaries exist under `src/application/planning-service.ts`; the accessible capacity dashboard, 5/15/30/custom minute input, deterministic recommendation, partial-session state, and manual/unknown selection UI are committed. Emulator/device checks remain open.
 - **NATIVE-041:** Pure WebView navigation and external-fallback policy exists under `src/application/webview-policy.ts`; native WebView callbacks, isolation configuration, and device behavior remain open.
 - **NATIVE-060:** Dependency-free shared URL/text validation and staged capture-intake persistence exist under `src/application/share-intake-service.ts`; Android/iOS platform share integrations and development-build checks remain open.
-- **Test record:** Root `pnpm typecheck`, `pnpm test` (20 files, 104 tests), `pnpm format:check`, and `git diff --check` pass against native sources. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
+- **NATIVE-061:** The current Expo SDK target has no iOS Share Extension/App Group configuration. iOS `expo-sharing` handoffs are routed to explicit URL-paste guidance without reading or staging payloads; iOS share-menu support is not claimed and physical-device verification remains open.
+- **Test record:** Root `pnpm typecheck`, `pnpm test` (21 files, 106 tests), `pnpm format:check`, and `git diff --check` pass against native sources. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
 
 ## Historical web verification context
 

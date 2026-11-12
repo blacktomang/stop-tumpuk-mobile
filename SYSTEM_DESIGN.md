@@ -100,11 +100,13 @@ Provider fetches are optional network activity. Do not log raw notes, full share
 
 ## Native share intake
 
-Use `expo-sharing` configuration for Android `ACTION_SEND` URL/text payloads and the iOS share extension/App Group path when enabled. Expo Router's `app/+native-intent.ts` redirects the incoming share intent to a handler route. The handler reads the payload through the sharing adapter, extracts URL candidates, writes a small `capture_intake` row, and navigates to the normal capture form. It never chooses Reading plan or Inbox for the user and never saves a material automatically.
+Use `expo-sharing` configuration for Android `ACTION_SEND` URL/text payloads. This Expo SDK target has no iOS Share Extension or App Group target configured, so iOS native share-menu intake is explicitly unsupported; `app/+native-intent.ts` routes a stale or future iOS `expo-sharing` handoff to the capture screen with URL-paste guidance and does not read, stage, or consume a payload. Do not describe that fallback as iOS share support. An iOS extension/App Group can be added only as a separate native build and release decision.
+
+On Android, Expo Router's `app/+native-intent.ts` redirects the incoming share intent to a handler route. The handler reads the payload through the sharing adapter, extracts URL candidates, writes a small `capture_intake` row, and navigates to the normal capture form. It never chooses Reading plan or Inbox for the user and never saves a material automatically.
 
 Track a consumed intake ID so app relaunch or repeated route delivery cannot create duplicate saves. Keep the original text only until candidate extraction and do not include it in export or routine logs. If the native integration is unavailable or malformed, show a recoverable error and keep paste available.
 
-The Expo documentation labels receiving shares experimental and notes that iOS opens the main target rather than a fully supported sharing view controller. Therefore Android intent-filter and physical-device validation is an early release gate, and iOS requires a separate share-extension/App Group decision, build, and device test. A deep-link unit test cannot establish OS share-menu behavior.
+The Expo documentation labels receiving shares experimental and notes that iOS opens the main target rather than a fully supported sharing view controller. Therefore Android intent-filter and physical-device validation is an early release gate. This target records the iOS decision as URL-paste fallback until a separate share-extension/App Group implementation and device test are authorized. A deep-link unit test cannot establish OS share-menu behavior.
 
 ## WebView reading boundary
 

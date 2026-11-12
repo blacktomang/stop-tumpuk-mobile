@@ -67,9 +67,14 @@ export default function HomeScreen() {
     const nextShareError = Array.isArray(shareError)
       ? shareError[0]
       : shareError;
-    if (nextShareError === "unavailable") {
+    if (
+      nextShareError === "unavailable" ||
+      nextShareError === "ios-unsupported"
+    ) {
       setStatus(
-        "That share could not be opened. Paste the link below to continue.",
+        nextShareError === "ios-unsupported"
+          ? "iOS sharing is not available in this build. Paste the link below to continue."
+          : "That share could not be opened. Paste the link below to continue.",
       );
     }
     if (!repositories || !nextIntakeId) return;
