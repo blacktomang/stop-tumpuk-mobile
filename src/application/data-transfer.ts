@@ -321,6 +321,30 @@ export function serializeExport(data: ExportEnvelope): string {
   return JSON.stringify(validateEnvelope(data));
 }
 
+/** Reads durable records through repository boundaries and excludes disposable intake. */
+export async function exportData(
+  repositories: NativeRepositories,
+  exportedAt = new Date().toISOString(),
+): Promise<string> {
+  const [materials, notes, settings, events, sessions] = await Promise.all([
+    repositories.materials.list(),
+    repositories.notes.list(),
+    repositories.settings.get(),
+    repositories.events.list(),
+    repositories.sessions.list(),
+  ]);
+  return serializeExport({
+    format: exportFormat,
+    version: exportVersion,
+    exportedAt,
+    materials,
+    notes,
+    settings,
+    events,
+    sessions,
+  });
+}
+
 function additions<T extends { id: string }>(
   records: T[],
   existing: ReadonlySet<string>,

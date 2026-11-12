@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   exportFormat,
   exportVersion,
+  exportData,
   importData,
   parseExport,
   previewImport,
@@ -63,6 +64,54 @@ const envelope = (): ExportEnvelope => ({
 describe("native transfer boundary", () => {
   it("round-trips the current envelope without a storage dependency", () => {
     const parsed = parseExport(serializeExport(envelope()));
+    expect(parsed).toEqual(envelope());
+  });
+
+  it("exports durable records without disposable staged intake", async () => {
+    const repositories = {} as NativeRepositories;
+    repositories.materials = {
+      get: async () => null,
+      list: async () => envelope().materials,
+      findByNormalizedUrl: async () => null,
+      insert: async () => undefined,
+      update: async () => undefined,
+      delete: async () => undefined,
+    };
+    repositories.notes = {
+      list: async () => envelope().notes,
+      listForMaterial: async () => [],
+      get: async () => null,
+      insert: async () => undefined,
+      update: async () => undefined,
+      delete: async () => undefined,
+    };
+    repositories.settings = {
+      get: async () => envelope().settings,
+      save: async () => undefined,
+    };
+    repositories.events = {
+      list: async () => envelope().events,
+      listForMaterial: async () => [],
+      append: async () => undefined,
+    };
+    repositories.sessions = {
+      list: async () => envelope().sessions,
+      getActiveForMaterial: async () => null,
+      listForMaterial: async () => [],
+      insert: async () => undefined,
+      update: async () => undefined,
+    };
+    repositories.captureIntake = {
+      get: async () => null,
+      stage: async () => undefined,
+      consume: async () => undefined,
+    };
+    repositories.transaction = async (work) => work(repositories);
+
+    const parsed = parseExport(
+      await exportData(repositories, "2026-01-01T00:00:00.000Z"),
+    );
+
     expect(parsed).toEqual(envelope());
   });
 
