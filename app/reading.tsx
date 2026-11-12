@@ -1,6 +1,8 @@
 import * as WebBrowser from "expo-web-browser";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
+import { AppState } from "react-native";
+import { useEffect, useRef } from "react";
 import {
   ActivityIndicator,
   Linking,
@@ -25,6 +27,19 @@ import {
   validateReadingUrl,
   type ReadingState,
 } from "../src/features/reading/reading-state";
+import {
+  createTimerController,
+  initialTimerSnapshot,
+  type TimerSnapshot,
+} from "../src/features/reading/timer-controller";
+import {
+  formatFocusTime,
+  timerMessage,
+  timerTitle,
+} from "../src/features/reading/timer-presenter";
+import { openNativeRepositories } from "../src/storage/sqlite/expo-sqlite-adapter";
+import { randomUUID } from "expo-crypto";
+import type { NativeRepositories } from "../src/storage/sqlite/repositories";
 
 const colors = {
   ink: "#17211B",
@@ -43,6 +58,7 @@ function textParam(value: string | string[] | undefined, fallback: string) {
 
 export default function ReadingScreen() {
   const params = useLocalSearchParams<{
+    materialId?: string;
     url?: string;
     title?: string;
     estimate?: string;
@@ -55,6 +71,63 @@ export default function ReadingScreen() {
   const [reloadToken, setReloadToken] = useState(0);
   const [state, setState] = useState<ReadingState>(initialReadingState);
   const [message, setMessage] = useState<string | null>(null);
+  const [repositories, setRepositories] = useState<NativeRepositories | null>(
+    null,
+  );
+  const [timerSnapshot, setTimerSnapshot] =
+    useState<TimerSnapshot>(initialTimerSnapshot);
+  const timerControllerRef = useRef<ReturnType<
+    typeof createTimerController
+  > | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    openNativeRepositories()
+      .then((nextRepositories) => {
+        if (mounted) setRepositories(nextRepositories);
+      })
+      .catch(() => {
+        if (mounted)
+          setMessage(
+            "Local storage is unavailable. Timer state cannot be loaded.",
+          );
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!repositories || typeof params.materialId !== "string") return;
+    const controller = createTimerController({
+      repositories,
+      materialId: params.materialId,
+      generateId: randomUUID,
+      now: () => new Date().toISOString(),
+      appState: AppState,
+    });
+    timerControllerRef.current = controller;
+    const unsubscribe = controller.subscribe(setTimerSnapshot);
+    void controller.load();
+    return () => {
+      unsubscribe();
+      controller.dispose();
+      timerControllerRef.current = null;
+    };
+  }, [params.materialId, repositories]);
+
+  async function runTimerAction(action: "start" | "pause" | "resume" | "end") {
+    const controller = timerControllerRef.current;
+    if (!controller) return;
+    setMessage(null);
+    try {
+      await controller[action]();
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "The timer action failed.",
+      );
+    }
+  }
 
   function retry() {
     setMessage(null);
@@ -117,6 +190,14 @@ export default function ReadingScreen() {
             </Text>
           ) : null}
         </View>
+
+        <TimerPanel
+          snapshot={timerSnapshot}
+          onEnd={() => void runTimerAction("end")}
+          onPause={() => void runTimerAction("pause")}
+          onResume={() => void runTimerAction("resume")}
+          onStart={() => void runTimerAction("start")}
+        />
 
         {!url ? (
           <StatePanel
@@ -266,6 +347,90 @@ function StatePanel({
   );
 }
 
+function TimerPanel({
+  snapshot,
+  onEnd,
+  onPause,
+  onResume,
+  onStart,
+}: {
+  snapshot: TimerSnapshot;
+  onEnd: () => void;
+  onPause: () => void;
+  onResume: () => void;
+  onStart: () => void;
+}) {
+  const hasSession = snapshot.session !== null;
+  const action = snapshot.phase === "running" ? onPause : onResume;
+  const actionLabel = snapshot.phase === "running" ? "Pause" : "Resume";
+  return (
+    <View style={styles.timerPanel} accessibilityRole="summary">
+      <View style={styles.timerCopy}>
+        <Text style={styles.timerEyebrow}>OPTIONAL FOCUS</Text>
+        <Text style={styles.timerTitle}>{timerTitle(snapshot.phase)}</Text>
+        <Text style={styles.timerMessage}>{timerMessage(snapshot.phase)}</Text>
+      </View>
+      {snapshot.phase === "loading" ? (
+        <ActivityIndicator color={colors.accent} />
+      ) : snapshot.phase === "error" ? null : (
+        <View style={styles.timerActions}>
+          {hasSession && snapshot.phase !== "idle" ? (
+            <Text accessibilityLiveRegion="polite" style={styles.timerValue}>
+              {formatFocusTime(snapshot.remainingSeconds)}
+            </Text>
+          ) : null}
+          {!hasSession || snapshot.phase === "idle" ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={onStart}
+              style={({ pressed }) => [
+                styles.primary,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.primaryText}>Start 25 minutes</Text>
+            </Pressable>
+          ) : snapshot.phase === "expired" ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={onEnd}
+              style={({ pressed }) => [
+                styles.secondary,
+                pressed && styles.pressed,
+              ]}
+            >
+              <Text style={styles.secondaryText}>End timer</Text>
+            </Pressable>
+          ) : (
+            <>
+              <Pressable
+                accessibilityRole="button"
+                onPress={action}
+                style={({ pressed }) => [
+                  styles.primary,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.primaryText}>{actionLabel}</Text>
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                onPress={onEnd}
+                style={({ pressed }) => [
+                  styles.secondary,
+                  pressed && styles.pressed,
+                ]}
+              >
+                <Text style={styles.secondaryText}>End</Text>
+              </Pressable>
+            </>
+          )}
+        </View>
+      )}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   screen: { backgroundColor: colors.paper, flex: 1 },
   header: {
@@ -335,6 +500,31 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accentSoft,
     color: colors.ink,
     padding: 10,
+  },
+  timerPanel: {
+    alignItems: "center",
+    backgroundColor: colors.ink,
+    flexDirection: "row",
+    gap: 14,
+    justifyContent: "space-between",
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+  },
+  timerCopy: { flex: 1, gap: 3 },
+  timerEyebrow: {
+    color: "#AFC7B4",
+    fontSize: 10,
+    fontWeight: "800",
+    letterSpacing: 1,
+  },
+  timerTitle: { color: "#FFFFFF", fontSize: 16, fontWeight: "800" },
+  timerMessage: { color: "#D8E4D9", fontSize: 12, lineHeight: 17 },
+  timerActions: { alignItems: "flex-end", gap: 8, minWidth: 116 },
+  timerValue: {
+    color: "#FFFFFF",
+    fontSize: 28,
+    fontVariant: ["tabular-nums"],
+    fontWeight: "800",
   },
   placeholder: {
     color: colors.muted,
