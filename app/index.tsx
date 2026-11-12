@@ -128,12 +128,20 @@ export default function HomeScreen() {
           <View style={styles.header}>
             <View style={styles.headerRow}>
               <Text style={styles.eyebrow}>STOP-TUMPUK</Text>
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => router.push("/settings")}
-              >
-                <Text style={styles.settingsLink}>Settings</Text>
-              </Pressable>
+              <View style={styles.headerActions}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => router.push("/dashboard")}
+                >
+                  <Text style={styles.settingsLink}>Dashboard</Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => router.push("/settings")}
+                >
+                  <Text style={styles.settingsLink}>Settings</Text>
+                </Pressable>
+              </View>
             </View>
             <Text style={styles.title}>Make room to finish.</Text>
             <Text style={styles.intro}>
@@ -259,6 +267,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
+  headerActions: { flexDirection: "row", gap: 16 },
   eyebrow: {
     color: colors.accent,
     fontSize: 12,
