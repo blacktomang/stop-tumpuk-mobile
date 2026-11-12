@@ -94,6 +94,11 @@ describe("native notes service", () => {
     const second = await service.create("material-1", "Change this note");
 
     const updated = await service.update(second.id, "Changed text");
+    expect(await service.list("material-1")).toEqual([
+      first,
+      { ...second, content: "Changed text" },
+    ]);
+
     await service.delete(second.id);
 
     expect(updated).toMatchObject({ id: second.id, content: "Changed text" });
@@ -117,8 +122,11 @@ describe("native notes service", () => {
 
   it("reloads notes for a finished material without losing the association", async () => {
     const state = repositories();
-    const service = createNotesService(dependencies(state.repos));
-    const first = await service.create("finished-material", "Keep this note");
+    const firstService = createNotesService(dependencies(state.repos));
+    const first = await firstService.create(
+      "finished-material",
+      "Keep this note",
+    );
 
     state.notes.push({
       id: "note-reloaded",
@@ -128,17 +136,30 @@ describe("native notes service", () => {
       updatedAt: timestamp,
     });
 
-    expect(await service.list("finished-material")).toEqual([
+    const reloadedService = createNotesService(dependencies(state.repos));
+    expect(await reloadedService.list("finished-material")).toEqual([
       first,
       state.notes[1],
     ]);
   });
 
-  it("rejects empty content and missing note IDs", async () => {
+  it("rejects blank material IDs, content, and note IDs", async () => {
     const service = createNotesService(dependencies(repositories().repos));
 
+    await expect(service.create("   ", "text")).rejects.toThrow(
+      "materialId must not be empty",
+    );
     await expect(service.create("material-1", "   ")).rejects.toThrow(
       "content must not be empty",
+    );
+    await expect(service.update("   ", "text")).rejects.toThrow(
+      "noteId must not be empty",
+    );
+    await expect(service.update("missing", "   ")).rejects.toThrow(
+      "content must not be empty",
+    );
+    await expect(service.delete("   ")).rejects.toThrow(
+      "noteId must not be empty",
     );
     await expect(service.update("missing", "text")).rejects.toThrow(
       "Note not found: missing",

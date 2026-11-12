@@ -12,6 +12,7 @@ describe("material action hierarchy", () => {
       advanced: ["edit", "archive", "delete"],
     });
     expect(actionGroupForStatus("in-progress").primary).toBe("finish");
+    expect(actionGroupForStatus("completed").primary).toBe("open");
     expect(actionGroupForStatus("completed").advanced).toContain("reopen");
     expect(actionGroupForStatus("archived").advanced).not.toContain(
       "return-to-inbox",
