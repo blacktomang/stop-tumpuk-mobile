@@ -260,7 +260,7 @@ produce an evidence record.
 
 ## Current progress record
 
-- **NATIVE-001:** Temporary Expo SDK 58 scaffold resolved with pnpm; `expo-doctor` passed 20/20 checks. Root `package.json`, `app.json`, `tsconfig.json`, Expo Router routes, `vitest.config.ts`, and the active root `pnpm-lock.yaml` are committed. Direct root TypeScript verification passes; development-build and device validation remain open.
+- **NATIVE-001:** Temporary Expo SDK 58 scaffold resolved with pnpm; `expo-doctor` passed 20/20 checks. Root `package.json`, `app.json`, `eas.json`, `tsconfig.json`, Expo Router routes, `vitest.config.ts`, and the active root `pnpm-lock.yaml` are committed, including `expo-dev-client` and EAS development/preview/production profiles. Direct root TypeScript verification passes; built development-client and device validation remain open.
 - **NATIVE-003:** The source audit and native runtime audit are captured in [SYSTEM_DESIGN.md](SYSTEM_DESIGN.md); copied pure logic and browser-specific rewrite boundaries are identified.
 - **NATIVE-010:** Runtime validators and pure domain rules exist under `src/`; strict TypeScript and focused/full automated tests pass. Native screen/runtime adapter wiring is implemented for the current scope; native persistence/device checks remain open.
 - **NATIVE-011:** The SQLite schema/migration metadata, typed repository interfaces, isolated `expo-sqlite` adapter, and mocked CRUD/transaction boundary tests exist under `src/storage/sqlite/`; native build/runtime persistence checks remain open.
