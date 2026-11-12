@@ -137,11 +137,27 @@ export default function HomeScreen() {
             {
               text: "Save another",
               onPress: () => {
-                void result.retry().then(() => {
-                  setUrl("");
-                  setStagedIntakeId(null);
-                  setStatus("Saved a second copy.");
-                });
+                setIsSaving(true);
+                setStatus(null);
+                void result
+                  .retry()
+                  .then((retryResult) => {
+                    if (retryResult.kind !== "saved") {
+                      setStatus("That link could not be saved again.");
+                      return;
+                    }
+                    setUrl("");
+                    setStagedIntakeId(null);
+                    setStatus("Saved a second copy.");
+                  })
+                  .catch((retryError) => {
+                    setStatus(
+                      retryError instanceof Error
+                        ? retryError.message
+                        : "That link could not be saved again.",
+                    );
+                  })
+                  .finally(() => setIsSaving(false));
               },
             },
           ],
