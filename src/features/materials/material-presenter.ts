@@ -1,5 +1,6 @@
-import type { MaterialStatus } from "../../types";
+import type { Material, MaterialStatus } from "../../types";
 import type { MaterialListFilter } from "../../application/material-management-service";
+import { estimateLabel, estimatedSeconds, formatDuration } from "../../domain";
 
 export const materialFilters: readonly {
   key: MaterialListFilter;
@@ -81,4 +82,13 @@ export function actionLabel(action: MaterialAction): string {
     case "delete":
       return "Delete";
   }
+}
+
+export function readingRouteParams(material: Material) {
+  return {
+    url: material.originalUrl,
+    title: material.title,
+    estimate: `${formatDuration(estimatedSeconds(material))} · ${estimateLabel(material)}`,
+    domain: material.domain,
+  };
 }

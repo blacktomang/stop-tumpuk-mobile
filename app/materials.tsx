@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   Modal,
   Pressable,
   ScrollView,
@@ -26,6 +25,7 @@ import {
   actionGroupForStatus,
   actionLabel,
   materialFilters,
+  readingRouteParams,
   type MaterialAction,
 } from "../src/features/materials/material-presenter";
 import { estimatedSeconds, formatDuration } from "../src/domain";
@@ -104,7 +104,10 @@ export default function MaterialsScreen() {
     setMessage(null);
     try {
       if (action === "open") {
-        await Linking.openURL(material.originalUrl);
+        router.push({
+          pathname: "/reading",
+          params: readingRouteParams(material),
+        });
         return;
       }
       if (action === "edit") {
