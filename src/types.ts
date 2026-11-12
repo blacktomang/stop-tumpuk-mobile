@@ -1,7 +1,9 @@
-export type MaterialStatus = 'inbox' | 'queued' | 'in-progress' | 'completed' | 'archived';
-export type MaterialType = 'article' | 'video' | 'unknown';
-export type DurationProvenance = 'api-runtime' | 'publisher-estimate' | 'word-count' | 'manual' | 'unknown';
-export type DurationCompleteness = 'full' | 'partial' | 'unknown';
+export type MaterialStatus =
+  "inbox" | "queued" | "in-progress" | "completed" | "archived";
+export type MaterialType = "article" | "video" | "unknown";
+export type DurationProvenance =
+  "api-runtime" | "publisher-estimate" | "word-count" | "manual" | "unknown";
+export type DurationCompleteness = "full" | "partial" | "unknown";
 
 export interface Material {
   id: string;
@@ -25,7 +27,7 @@ export interface Material {
 }
 
 export interface Settings {
-  id: 'settings';
+  id: "settings";
   weekdayMinutes: number | null;
   weekendMinutes: number | null;
   onboardingDismissed: boolean;
@@ -36,14 +38,14 @@ export interface MaterialEvent {
   id: string;
   materialId: string;
   type:
-    | 'captured'
-    | 'queued'
-    | 'in-progress'
-    | 'completed'
-    | 'reopened'
-    | 'returned-to-inbox'
-    | 'archived'
-    | 'deleted';
+    | "captured"
+    | "queued"
+    | "in-progress"
+    | "completed"
+    | "reopened"
+    | "returned-to-inbox"
+    | "archived"
+    | "deleted";
   at: string;
 }
 
@@ -55,7 +57,7 @@ export interface Note {
   updatedAt: string;
 }
 
-export type SessionState = 'running' | 'paused' | 'ended';
+export type SessionState = "running" | "paused" | "ended";
 export interface LearningSession {
   id: string;
   materialId: string;
@@ -76,11 +78,11 @@ export interface CaptureIntake {
 
 export type MaterialDraft = Pick<
   Material,
-  | 'title'
-  | 'type'
-  | 'sourceDurationSeconds'
-  | 'sourceDurationProvenance'
-  | 'sourceDurationCompleteness'
-  | 'playbackSpeed'
-  | 'manualEstimatedSeconds'
+  | "title"
+  | "type"
+  | "sourceDurationSeconds"
+  | "sourceDurationProvenance"
+  | "sourceDurationCompleteness"
+  | "playbackSpeed"
+  | "manualEstimatedSeconds"
 >;

@@ -1,6 +1,6 @@
-import { classifyUrl, extractSharedUrl } from '../domain';
-import type { NativeRepositories } from '../storage/sqlite/repositories';
-import type { CaptureIntake } from '../types';
+import { classifyUrl, extractSharedUrl } from "../domain";
+import type { NativeRepositories } from "../storage/sqlite/repositories";
+import type { CaptureIntake } from "../types";
 
 export interface SharedPayload {
   /** URL supplied directly by the platform share API, when available. */
@@ -19,9 +19,10 @@ export interface ShareIntakeDependencies {
 
 function optionalText(value: unknown, label: string): string | null {
   if (value === undefined || value === null) return null;
-  if (typeof value !== 'string') throw new Error(`${label} must be text when provided.`);
+  if (typeof value !== "string")
+    throw new Error(`${label} must be text when provided.`);
   const trimmed = value.trim();
-  return trimmed === '' ? null : trimmed;
+  return trimmed === "" ? null : trimmed;
 }
 
 /**
@@ -29,19 +30,22 @@ function optionalText(value: unknown, label: string): string | null {
  * destination-aware capture form. Platform listeners should pass raw values;
  * this boundary validates them before they reach persistence.
  */
-export function createShareIntakeService(dependencies: ShareIntakeDependencies) {
+export function createShareIntakeService(
+  dependencies: ShareIntakeDependencies,
+) {
   async function stage(payload: SharedPayload): Promise<CaptureIntake> {
-    if (payload === null || typeof payload !== 'object') {
-      throw new Error('A shared URL or text payload is required.');
+    if (payload === null || typeof payload !== "object") {
+      throw new Error("A shared URL or text payload is required.");
     }
 
-    const directUrl = optionalText(payload.url, 'Shared URL');
-    const text = optionalText(payload.text, 'Shared text');
+    const directUrl = optionalText(payload.url, "Shared URL");
+    const text = optionalText(payload.text, "Shared text");
     const candidate = directUrl ?? (text ? extractSharedUrl(text) : null);
-    if (!candidate) throw new Error('The shared payload does not contain an HTTP(S) URL.');
+    if (!candidate)
+      throw new Error("The shared payload does not contain an HTTP(S) URL.");
 
     const { url } = classifyUrl(candidate);
-    const title = optionalText(payload.title, 'Shared title');
+    const title = optionalText(payload.title, "Shared title");
     const intake: CaptureIntake = {
       id: dependencies.generateId(),
       url: url.toString(),

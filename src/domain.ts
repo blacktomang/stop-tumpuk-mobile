@@ -1,44 +1,59 @@
-import type { DurationProvenance, Material, MaterialType } from './types';
+import type { DurationProvenance, Material, MaterialType } from "./types";
 
 export const secondsPerMinute = 60;
-export const roundMinutes = (seconds: number) => Math.max(0, Math.ceil(seconds / secondsPerMinute));
+export const roundMinutes = (seconds: number) =>
+  Math.max(0, Math.ceil(seconds / secondsPerMinute));
 export const formatDuration = (seconds: number | null) =>
-  seconds === null ? 'Time not estimated yet' : `${roundMinutes(seconds)} min`;
+  seconds === null ? "Time not estimated yet" : `${roundMinutes(seconds)} min`;
 
 /** The sole planning-estimate calculation; zero is known and null is unknown. */
 export function estimatedSeconds(material: Material): number | null {
-  if (material.manualEstimatedSeconds !== null) return material.manualEstimatedSeconds;
+  if (material.manualEstimatedSeconds !== null)
+    return material.manualEstimatedSeconds;
   if (material.sourceDurationSeconds === null) return null;
-  return material.type === 'video'
+  return material.type === "video"
     ? Math.round(material.sourceDurationSeconds / material.playbackSpeed)
     : material.sourceDurationSeconds;
 }
 
 export function estimateLabel(material: Material): string {
-  if (material.manualEstimatedSeconds !== null) return 'Manually set';
+  if (material.manualEstimatedSeconds !== null) return "Manually set";
   switch (material.sourceDurationProvenance) {
-    case 'api-runtime':
-      return 'Video runtime';
-    case 'publisher-estimate':
-    case 'word-count':
-      return 'Estimated';
-    case 'manual':
-      return 'Manually set';
+    case "api-runtime":
+      return "Video runtime";
+    case "publisher-estimate":
+    case "word-count":
+      return "Estimated";
+    case "manual":
+      return "Manually set";
     default:
-      return 'Time not estimated yet';
+      return "Time not estimated yet";
   }
 }
 
-export const weeklyCapacitySeconds = (weekday: number | null, weekend: number | null) =>
-  weekday === null || weekend === null ? null : (weekday * 5 + weekend * 2) * secondsPerMinute;
+export const weeklyCapacitySeconds = (
+  weekday: number | null,
+  weekend: number | null,
+) =>
+  weekday === null || weekend === null
+    ? null
+    : (weekday * 5 + weekend * 2) * secondsPerMinute;
 
-export function backlog(materials: Material[], weekday: number | null, weekend: number | null) {
-  const active = materials.filter((m) => m.status === 'queued' || m.status === 'in-progress');
+export function backlog(
+  materials: Material[],
+  weekday: number | null,
+  weekend: number | null,
+) {
+  const active = materials.filter(
+    (m) => m.status === "queued" || m.status === "in-progress",
+  );
   const known = active
     .map(estimatedSeconds)
     .filter((value): value is number => value !== null)
     .reduce((sum, value) => sum + value, 0);
-  const unknown = active.filter((material) => estimatedSeconds(material) === null).length;
+  const unknown = active.filter(
+    (material) => estimatedSeconds(material) === null,
+  ).length;
   const capacity = weeklyCapacitySeconds(weekday, weekend);
   return {
     active: active.length,
@@ -49,7 +64,8 @@ export function backlog(materials: Material[], weekday: number | null, weekend: 
   };
 }
 
-export type CapacityState = 'unset' | 'zero' | 'empty' | 'under' | 'full' | 'overflow';
+export type CapacityState =
+  "unset" | "zero" | "empty" | "under" | "full" | "overflow";
 
 /**
  * The dashboard's single source of truth. `visualFraction` is intentionally
@@ -83,7 +99,7 @@ export function capacityViewModel(
   if (summary.capacity === null) {
     return {
       ...base,
-      state: 'unset',
+      state: "unset",
       visualFraction: null,
       headroomSeconds: null,
       overflowSeconds: null,
@@ -93,7 +109,7 @@ export function capacityViewModel(
   if (summary.capacity === 0) {
     return {
       ...base,
-      state: 'zero',
+      state: "zero",
       visualFraction: null,
       headroomSeconds: null,
       overflowSeconds: summary.known,
@@ -103,7 +119,7 @@ export function capacityViewModel(
   if (summary.active === 0) {
     return {
       ...base,
-      state: 'empty',
+      state: "empty",
       visualFraction: 0,
       headroomSeconds: summary.capacity,
       overflowSeconds: null,
@@ -113,7 +129,7 @@ export function capacityViewModel(
   if (summary.known > summary.capacity) {
     return {
       ...base,
-      state: 'overflow',
+      state: "overflow",
       visualFraction: 1,
       headroomSeconds: null,
       overflowSeconds: summary.known - summary.capacity,
@@ -123,7 +139,7 @@ export function capacityViewModel(
   if (summary.known === summary.capacity) {
     return {
       ...base,
-      state: 'full',
+      state: "full",
       visualFraction: 1,
       headroomSeconds: 0,
       overflowSeconds: null,
@@ -132,7 +148,7 @@ export function capacityViewModel(
   }
   return {
     ...base,
-    state: 'under',
+    state: "under",
     visualFraction: summary.known / summary.capacity,
     headroomSeconds: summary.capacity - summary.known,
     overflowSeconds: null,
@@ -140,22 +156,34 @@ export function capacityViewModel(
   };
 }
 
-export function classifyUrl(raw: string): { url: URL; type: MaterialType; source: DurationProvenance } {
+export function classifyUrl(raw: string): {
+  url: URL;
+  type: MaterialType;
+  source: DurationProvenance;
+} {
   const url = new URL(raw);
-  if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Use a valid HTTP(S) link.');
+  if (!["http:", "https:"].includes(url.protocol))
+    throw new Error("Use a valid HTTP(S) link.");
   const host = url.hostname.toLowerCase();
   return {
     url,
-    type: host.includes('youtube.com') || host.includes('youtu.be') ? 'video' : 'article',
-    source: 'unknown',
+    type:
+      host.includes("youtube.com") || host.includes("youtu.be")
+        ? "video"
+        : "article",
+    source: "unknown",
   };
 }
 
 export const normalizeUrl = (url: URL) => {
   const copy = new URL(url);
-  ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'].forEach((key) =>
-    copy.searchParams.delete(key),
-  );
+  [
+    "utm_source",
+    "utm_medium",
+    "utm_campaign",
+    "utm_term",
+    "utm_content",
+  ].forEach((key) => copy.searchParams.delete(key));
   return copy.toString();
 };
 
@@ -166,8 +194,10 @@ export function extractSharedUrl(value: string): string | null {
 
 export function inferredTitle(url: URL) {
   return (
-    url.hostname.replace(/^www\./, '') +
-    (url.pathname === '/' ? '' : url.pathname.replace(/[-_/]/g, ' ').replace(/^\s+|\s+$/g, ''))
+    url.hostname.replace(/^www\./, "") +
+    (url.pathname === "/"
+      ? ""
+      : url.pathname.replace(/[-_/]/g, " ").replace(/^\s+|\s+$/g, ""))
   );
 }
 
@@ -177,25 +207,36 @@ export interface RecommendationResult {
   manual: Material[];
 }
 
-export function recommendMaterials(materials: Material[], availableSeconds: number): RecommendationResult {
+export function recommendMaterials(
+  materials: Material[],
+  availableSeconds: number,
+): RecommendationResult {
   const active = materials.filter(
-    (material) => material.status === 'queued' || material.status === 'in-progress',
+    (material) =>
+      material.status === "queued" || material.status === "in-progress",
   );
   const known = active
     .map((material) => ({ material, estimate: estimatedSeconds(material) }))
-    .filter((entry): entry is { material: Material; estimate: number } => entry.estimate !== null);
+    .filter(
+      (entry): entry is { material: Material; estimate: number } =>
+        entry.estimate !== null,
+    );
   const ordered = known.sort(
     (left, right) =>
-      Number(right.material.status === 'in-progress') - Number(left.material.status === 'in-progress') ||
+      Number(right.material.status === "in-progress") -
+        Number(left.material.status === "in-progress") ||
       left.estimate - right.estimate ||
       left.material.createdAt.localeCompare(right.material.createdAt) ||
       left.material.id.localeCompare(right.material.id),
   );
   return {
-    primary: ordered.find((entry) => entry.estimate <= availableSeconds)?.material ?? null,
+    primary:
+      ordered.find((entry) => entry.estimate <= availableSeconds)?.material ??
+      null,
     partial:
       ordered.find((entry) => entry.estimate <= availableSeconds) === undefined
-        ? (ordered.find((entry) => entry.estimate > availableSeconds)?.material ?? null)
+        ? (ordered.find((entry) => entry.estimate > availableSeconds)
+            ?.material ?? null)
         : null,
     manual: [
       ...ordered.map((entry) => entry.material),

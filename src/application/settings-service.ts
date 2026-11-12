@@ -1,9 +1,9 @@
 import {
   nextAvailabilityReminder,
   shouldPromptForAvailability,
-} from './availability-reminder';
-import type { NativeRepositories } from '../storage/sqlite/repositories';
-import type { Settings } from '../types';
+} from "./availability-reminder";
+import type { NativeRepositories } from "../storage/sqlite/repositories";
+import type { Settings } from "../types";
 
 export interface SettingsServiceDependencies {
   repositories: NativeRepositories;
@@ -11,7 +11,7 @@ export interface SettingsServiceDependencies {
 }
 
 const emptySettings = (): Settings => ({
-  id: 'settings',
+  id: "settings",
   weekdayMinutes: null,
   weekendMinutes: null,
   onboardingDismissed: false,
@@ -25,7 +25,9 @@ function validateMinutes(value: number | null, label: string): void {
 }
 
 /** Application boundary for the singleton settings row and availability prompt. */
-export function createSettingsService(dependencies: SettingsServiceDependencies) {
+export function createSettingsService(
+  dependencies: SettingsServiceDependencies,
+) {
   const now = dependencies.now ?? (() => new Date());
 
   async function get(): Promise<Settings> {
@@ -36,8 +38,8 @@ export function createSettingsService(dependencies: SettingsServiceDependencies)
     weekdayMinutes: number | null,
     weekendMinutes: number | null,
   ): Promise<Settings> {
-    validateMinutes(weekdayMinutes, 'Weekday availability');
-    validateMinutes(weekendMinutes, 'Weekend availability');
+    validateMinutes(weekdayMinutes, "Weekday availability");
+    validateMinutes(weekendMinutes, "Weekend availability");
 
     return dependencies.repositories.transaction(async (repositories) => {
       const current = (await repositories.settings.get()) ?? emptySettings();

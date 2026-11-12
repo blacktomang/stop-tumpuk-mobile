@@ -1,5 +1,5 @@
-import type { NativeRepositories } from '../storage/sqlite/repositories';
-import type { Note } from '../types';
+import type { NativeRepositories } from "../storage/sqlite/repositories";
+import type { Note } from "../types";
 
 export interface NotesServiceDependencies {
   repositories: NativeRepositories;
@@ -25,13 +25,15 @@ function matchesQuery(note: Note, query: string): boolean {
   return note.content.toLocaleLowerCase().includes(query.toLocaleLowerCase());
 }
 
-export function createNotesService(dependencies: NotesServiceDependencies): NotesService {
+export function createNotesService(
+  dependencies: NotesServiceDependencies,
+): NotesService {
   const { repositories, generateId, now } = dependencies;
 
   return {
     async create(materialId, content) {
-      requireText(materialId, 'materialId');
-      requireText(content, 'content');
+      requireText(materialId, "materialId");
+      requireText(content, "content");
       const timestamp = now();
       const note: Note = {
         id: generateId(),
@@ -47,19 +49,22 @@ export function createNotesService(dependencies: NotesServiceDependencies): Note
     },
 
     async update(noteId, content) {
-      requireText(noteId, 'noteId');
-      requireText(content, 'content');
+      requireText(noteId, "noteId");
+      requireText(content, "content");
       return repositories.transaction(async (transactionRepositories) => {
         const existing = await transactionRepositories.notes.get(noteId);
         if (!existing) throw new Error(`Note not found: ${noteId}`);
         const updatedAt = now();
-        await transactionRepositories.notes.update(noteId, { content, updatedAt });
+        await transactionRepositories.notes.update(noteId, {
+          content,
+          updatedAt,
+        });
         return { ...existing, content, updatedAt };
       });
     },
 
     async delete(noteId) {
-      requireText(noteId, 'noteId');
+      requireText(noteId, "noteId");
       await repositories.transaction(async (transactionRepositories) => {
         const existing = await transactionRepositories.notes.get(noteId);
         if (!existing) throw new Error(`Note not found: ${noteId}`);
@@ -69,7 +74,7 @@ export function createNotesService(dependencies: NotesServiceDependencies): Note
 
     async list(materialId) {
       if (materialId !== undefined) {
-        requireText(materialId, 'materialId');
+        requireText(materialId, "materialId");
         return repositories.notes.listForMaterial(materialId);
       }
       return repositories.notes.list();

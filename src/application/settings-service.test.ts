@@ -1,7 +1,13 @@
-import { describe, expect, it } from 'vitest';
-import type { NativeRepositories } from '../storage/sqlite/repositories';
-import type { LearningSession, Material, MaterialEvent, Note, Settings } from '../types';
-import { createSettingsService } from './settings-service';
+import { describe, expect, it } from "vitest";
+import type { NativeRepositories } from "../storage/sqlite/repositories";
+import type {
+  LearningSession,
+  Material,
+  MaterialEvent,
+  Note,
+  Settings,
+} from "../types";
+import { createSettingsService } from "./settings-service";
 
 function repositories(seed: Settings | null = null) {
   let settings = seed;
@@ -53,13 +59,13 @@ function repositories(seed: Settings | null = null) {
   return { repos, read: () => settings, transactions: () => transactions };
 }
 
-describe('native settings service', () => {
-  it('reads an explicit default and preserves zero as distinct from unset', async () => {
+describe("native settings service", () => {
+  it("reads an explicit default and preserves zero as distinct from unset", async () => {
     const state = repositories();
     const service = createSettingsService({ repositories: state.repos });
 
     expect(await service.get()).toEqual({
-      id: 'settings',
+      id: "settings",
       weekdayMinutes: null,
       weekendMinutes: null,
       onboardingDismissed: false,
@@ -72,7 +78,7 @@ describe('native settings service', () => {
     expect(await service.shouldPrompt()).toBe(true);
   });
 
-  it('dismisses the prompt once both availability values are configured', async () => {
+  it("dismisses the prompt once both availability values are configured", async () => {
     const state = repositories();
     const service = createSettingsService({ repositories: state.repos });
 
@@ -84,34 +90,38 @@ describe('native settings service', () => {
     expect(state.transactions()).toBe(1);
   });
 
-  it('schedules a three-month reminder when availability is skipped', async () => {
+  it("schedules a three-month reminder when availability is skipped", async () => {
     const state = repositories();
     const service = createSettingsService({
       repositories: state.repos,
-      now: () => new Date('2026-11-11T00:00:00.000Z'),
+      now: () => new Date("2026-11-11T00:00:00.000Z"),
     });
 
     const skipped = await service.skipAvailabilityPrompt();
 
-    expect(skipped.availabilityReminderAt).toBe('2027-02-11T00:00:00.000Z');
+    expect(skipped.availabilityReminderAt).toBe("2027-02-11T00:00:00.000Z");
     expect(await service.shouldPrompt()).toBe(false);
 
     const due = createSettingsService({
       repositories: state.repos,
-      now: () => new Date('2027-02-11T00:00:00.000Z'),
+      now: () => new Date("2027-02-11T00:00:00.000Z"),
     });
     expect(await due.shouldPrompt()).toBe(true);
   });
 
-  it('rejects negative, infinite, and NaN minute values before persistence', async () => {
+  it("rejects negative, infinite, and NaN minute values before persistence", async () => {
     const state = repositories();
     const service = createSettingsService({ repositories: state.repos });
 
-    await expect(service.saveAvailability(-1, 10)).rejects.toThrow('Weekday availability');
-    await expect(service.saveAvailability(Number.POSITIVE_INFINITY, 10)).rejects.toThrow(
-      'Weekday availability',
+    await expect(service.saveAvailability(-1, 10)).rejects.toThrow(
+      "Weekday availability",
     );
-    await expect(service.saveAvailability(10, Number.NaN)).rejects.toThrow('Weekend availability');
+    await expect(
+      service.saveAvailability(Number.POSITIVE_INFINITY, 10),
+    ).rejects.toThrow("Weekday availability");
+    await expect(service.saveAvailability(10, Number.NaN)).rejects.toThrow(
+      "Weekend availability",
+    );
     expect(state.transactions()).toBe(0);
     expect(state.read()).toBeNull();
   });

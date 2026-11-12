@@ -10,44 +10,48 @@ import type {
   Note,
   SessionState,
   Settings,
-} from './types';
+} from "./types";
 
 type RecordValue = Record<string, unknown>;
 
 const materialStatuses: readonly MaterialStatus[] = [
-  'inbox',
-  'queued',
-  'in-progress',
-  'completed',
-  'archived',
+  "inbox",
+  "queued",
+  "in-progress",
+  "completed",
+  "archived",
 ];
-const materialTypes: readonly MaterialType[] = ['article', 'video', 'unknown'];
+const materialTypes: readonly MaterialType[] = ["article", "video", "unknown"];
 const durationProvenances: readonly DurationProvenance[] = [
-  'api-runtime',
-  'publisher-estimate',
-  'word-count',
-  'manual',
-  'unknown',
+  "api-runtime",
+  "publisher-estimate",
+  "word-count",
+  "manual",
+  "unknown",
 ];
-const durationCompleteness: readonly DurationCompleteness[] = ['full', 'partial', 'unknown'];
-const sessionStates: readonly SessionState[] = ['running', 'paused', 'ended'];
-const eventTypes: readonly MaterialEvent['type'][] = [
-  'captured',
-  'queued',
-  'in-progress',
-  'completed',
-  'reopened',
-  'returned-to-inbox',
-  'archived',
-  'deleted',
+const durationCompleteness: readonly DurationCompleteness[] = [
+  "full",
+  "partial",
+  "unknown",
+];
+const sessionStates: readonly SessionState[] = ["running", "paused", "ended"];
+const eventTypes: readonly MaterialEvent["type"][] = [
+  "captured",
+  "queued",
+  "in-progress",
+  "completed",
+  "reopened",
+  "returned-to-inbox",
+  "archived",
+  "deleted",
 ];
 
 function isRecord(value: unknown): value is RecordValue {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isString(value: unknown): value is string {
-  return typeof value === 'string';
+  return typeof value === "string";
 }
 
 function isNonEmptyString(value: unknown): value is string {
@@ -59,11 +63,11 @@ function isNullableHttpUrl(value: unknown): value is string | null {
 }
 
 function isNonNegativeFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
 
 function isPositiveFiniteNumber(value: unknown): value is number {
-  return typeof value === 'number' && Number.isFinite(value) && value > 0;
+  return typeof value === "number" && Number.isFinite(value) && value > 0;
 }
 
 function isIsoTimestamp(value: unknown): value is string {
@@ -74,13 +78,16 @@ function isHttpUrl(value: unknown): value is string {
   if (!isString(value)) return false;
   try {
     const parsed = new URL(value);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
   } catch {
     return false;
   }
 }
 
-function hasValue<T extends string>(values: readonly T[], value: unknown): value is T {
+function hasValue<T extends string>(
+  values: readonly T[],
+  value: unknown,
+): value is T {
   return isString(value) && values.includes(value as T);
 }
 
@@ -95,11 +102,13 @@ export function isMaterial(value: unknown): value is Material {
     isNullableHttpUrl(value.thumbnailUrl) &&
     hasValue(materialTypes, value.type) &&
     hasValue(materialStatuses, value.status) &&
-    (value.sourceDurationSeconds === null || isNonNegativeFiniteNumber(value.sourceDurationSeconds)) &&
+    (value.sourceDurationSeconds === null ||
+      isNonNegativeFiniteNumber(value.sourceDurationSeconds)) &&
     hasValue(durationProvenances, value.sourceDurationProvenance) &&
     hasValue(durationCompleteness, value.sourceDurationCompleteness) &&
     isPositiveFiniteNumber(value.playbackSpeed) &&
-    (value.manualEstimatedSeconds === null || isNonNegativeFiniteNumber(value.manualEstimatedSeconds)) &&
+    (value.manualEstimatedSeconds === null ||
+      isNonNegativeFiniteNumber(value.manualEstimatedSeconds)) &&
     isIsoTimestamp(value.createdAt) &&
     isIsoTimestamp(value.updatedAt)
   );
@@ -108,11 +117,14 @@ export function isMaterial(value: unknown): value is Material {
 export function isSettings(value: unknown): value is Settings {
   if (!isRecord(value)) return false;
   return (
-    value.id === 'settings' &&
-    (value.weekdayMinutes === null || isNonNegativeFiniteNumber(value.weekdayMinutes)) &&
-    (value.weekendMinutes === null || isNonNegativeFiniteNumber(value.weekendMinutes)) &&
-    typeof value.onboardingDismissed === 'boolean' &&
-    (value.availabilityReminderAt === null || isIsoTimestamp(value.availabilityReminderAt))
+    value.id === "settings" &&
+    (value.weekdayMinutes === null ||
+      isNonNegativeFiniteNumber(value.weekdayMinutes)) &&
+    (value.weekendMinutes === null ||
+      isNonNegativeFiniteNumber(value.weekendMinutes)) &&
+    typeof value.onboardingDismissed === "boolean" &&
+    (value.availabilityReminderAt === null ||
+      isIsoTimestamp(value.availabilityReminderAt))
   );
 }
 
@@ -162,31 +174,34 @@ export function isCaptureIntake(value: unknown): value is CaptureIntake {
 }
 
 export function parseMaterial(value: unknown): Material {
-  if (!isMaterial(value)) throw new Error('Invalid material record.');
+  if (!isMaterial(value)) throw new Error("Invalid material record.");
   return value;
 }
 
 export function parseSettings(value: unknown): Settings {
-  if (!isSettings(value)) throw new Error('Invalid settings record.');
+  if (!isSettings(value)) throw new Error("Invalid settings record.");
   return value;
 }
 
 export function parseNote(value: unknown): Note {
-  if (!isNote(value)) throw new Error('Invalid note record.');
+  if (!isNote(value)) throw new Error("Invalid note record.");
   return value;
 }
 
 export function parseLearningSession(value: unknown): LearningSession {
-  if (!isLearningSession(value)) throw new Error('Invalid learning session record.');
+  if (!isLearningSession(value))
+    throw new Error("Invalid learning session record.");
   return value;
 }
 
 export function parseMaterialEvent(value: unknown): MaterialEvent {
-  if (!isMaterialEvent(value)) throw new Error('Invalid material event record.');
+  if (!isMaterialEvent(value))
+    throw new Error("Invalid material event record.");
   return value;
 }
 
 export function parseCaptureIntake(value: unknown): CaptureIntake {
-  if (!isCaptureIntake(value)) throw new Error('Invalid capture intake record.');
+  if (!isCaptureIntake(value))
+    throw new Error("Invalid capture intake record.");
   return value;
 }
