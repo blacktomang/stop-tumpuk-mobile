@@ -286,6 +286,11 @@ vi.mock("expo-sqlite", () => ({
 }));
 
 import { openNativeRepositories } from "./expo-sqlite-adapter";
+import {
+  exportData,
+  importData,
+  parseExport,
+} from "../../application/data-transfer";
 import type {
   CaptureIntake,
   LearningSession,
@@ -500,5 +505,65 @@ describe("mocked SQLite adapter boundary (automated; not native runtime proof)",
         sql.startsWith("INSERT INTO schema_migrations"),
       ),
     ).toEqual(migrationInserts);
+  });
+
+  it("round-trips durable records through current-format transfer while excluding intake", async () => {
+    const source = await openNativeRepositories("round-trip-source.sqlite");
+    const target = await openNativeRepositories("round-trip-target.sqlite");
+    const secondSession: LearningSession = {
+      ...session,
+      id: "session-2",
+      startedAt: "2026-11-12T04:00:00.000Z",
+      state: "ended",
+      stateChangedAt: "2026-11-12T04:10:00.000Z",
+      endedAt: "2026-11-12T04:10:00.000Z",
+    };
+    const secondEvent: MaterialEvent = {
+      ...event,
+      id: "event-2",
+      type: "completed",
+      at: "2026-11-12T04:10:00.000Z",
+    };
+
+    await source.materials.insert(material);
+    await source.notes.insert(note("note-1", "first durable note"));
+    await source.notes.insert(note("note-2", "second durable note"));
+    await source.settings.save(settings);
+    await source.events.append(event);
+    await source.events.append(secondEvent);
+    await source.sessions.insert(session);
+    await source.sessions.insert(secondSession);
+    await source.captureIntake.stage(intake);
+
+    const backup = await exportData(source, "2026-11-12T05:00:00.000Z");
+    const parsed = parseExport(backup);
+    expect(parsed).toMatchObject({
+      materials: [material],
+      notes: [
+        note("note-1", "first durable note"),
+        note("note-2", "second durable note"),
+      ],
+      settings,
+      events: [event, secondEvent],
+      sessions: [session, secondSession],
+    });
+    expect(parsed).not.toHaveProperty("captureIntake");
+
+    const result = await importData(backup, target);
+
+    expect(result.conflicts).toBe(0);
+    expect(result.importable).toBe(8);
+    await expect(target.materials.list()).resolves.toEqual([material]);
+    await expect(target.notes.list()).resolves.toEqual([
+      note("note-1", "first durable note"),
+      note("note-2", "second durable note"),
+    ]);
+    await expect(target.settings.get()).resolves.toEqual(settings);
+    await expect(target.events.list()).resolves.toEqual([event, secondEvent]);
+    await expect(target.sessions.list()).resolves.toEqual([
+      session,
+      secondSession,
+    ]);
+    await expect(target.captureIntake.get(intake.id)).resolves.toBeNull();
   });
 });
