@@ -228,7 +228,7 @@ produce an evidence record.
 
 ### NATIVE-070 — Run the automated native suite
 
-- [ ] **FR references:** All implemented FRs; [AGENTS.md](AGENTS.md).
+- [x] **FR references:** All implemented FRs; [AGENTS.md](AGENTS.md).
 - **Dependencies:** NATIVE-050, NATIVE-051, NATIVE-052, NATIVE-060.
 - **Deliverable:** Root scripts, unit/repository/transfer/component tests, typecheck, lint, formatting check, and test fixtures for the complete capture-to-finish workflow.
 - **Verification:** Run only actual root scripts and record command/output, package versions, and failures. Mock provider responses and keep live websites out of core test pass/fail.
@@ -272,18 +272,17 @@ produce an evidence record.
 - **NATIVE-014:** Versioned migration initialization, repeat-open persistence, skipped-version, newer-schema rejection, rollback, and no-reset tests exist under `src/storage/sqlite/`; native runtime recovery checks remain open.
 - **NATIVE-013:** Additive transfer validation/import and repository-backed export are committed under `src/application/data-transfer.ts`; native file-picker/filesystem UI and SQLite round-trip checks remain open.
 - **NATIVE-020:** A repository-injected native capture service and destination-aware capture route exist under `src/application/capture-service.ts` and `app/index.tsx`, covering save-first capture, duplicate retry, staged-share consumption, and optional enrichment; native persistence/device checks remain open.
-- **NATIVE-033/NATIVE-042:** Lifecycle commands for commit, start, finish, reopen, return to Inbox, archive, and delete exist under `src/application/lifecycle-service.ts`; UI wiring and runtime persistence remain open.
+- **NATIVE-033/NATIVE-042:** Lifecycle commands and UI wiring for commit, start, finish, reopen, return to Inbox, archive, and delete are committed; runtime persistence/device checks remain open.
 - **NATIVE-033:** Native Materials route, status views, search/filter, editing, lifecycle actions, advanced-action grouping, and delete confirmation are committed; emulator/device persistence checks remain open.
 - **NATIVE-050:** Independent plain-text notes UI, sibling-preserving edit/delete/search, and finished-item reload coverage are committed; emulator checks remain open.
 - **NATIVE-052:** Native import/export route, conflict preview, rejected-file handling, atomic import messaging, and local-only guidance are committed; emulator/iOS file-provider checks remain open.
 - **NATIVE-060:** Android share payload parsing, staged intake handoff, consumed-intake protection, native-intent routing, and malformed/unavailable fallback are committed; installed-build/emulator/physical-device share checks remain open.
-- **NATIVE-051:** The fixed 25-minute timer service, elapsed/expiry rules, and valid pause/resume/end transition guards exist under `src/application/timer-service.ts`; AppState and native interruption wiring remain open.
 - **NATIVE-051:** The persisted timer controller/presenter now wires AppState foreground refresh, interval cleanup, start/pause/resume/end, and expiry recovery UI; emulator/physical-device interruption checks remain open.
 - **NATIVE-030:** Settings/availability persistence, reminder decisions, and native settings screen exist under `src/application/settings-service.ts` and `app/settings.tsx`; emulator restart/offline checks remain open.
 - **NATIVE-031/NATIVE-032:** Repository-backed capacity and recommendation application boundaries exist under `src/application/planning-service.ts`; the accessible capacity dashboard, 5/15/30/custom minute input, deterministic recommendation, partial-session state, and manual/unknown selection UI are committed. Emulator/device checks remain open.
-- **NATIVE-041:** Pure WebView navigation and external-fallback policy exists under `src/application/webview-policy.ts`; native WebView callbacks, isolation configuration, and device behavior remain open.
+- **NATIVE-041:** WebView navigation and external-fallback policy is enforced at the native route boundary with no privileged bridge; device behavior remains open.
 - **NATIVE-061:** The current Expo SDK target has no iOS Share Extension/App Group configuration. iOS `expo-sharing` handoffs are routed to explicit URL-paste guidance without reading or staging payloads; iOS share-menu support is not claimed and physical-device verification remains open.
-- **Test record:** Root `pnpm typecheck`, `pnpm test` (25 files, 127 tests), `pnpm format:check`, and `git diff --check` pass against native sources. The native capture fixture now covers capture, start, and explicit finish with lifecycle events. Lint is not configured: `eslint`, `@eslint/js`, `typescript-eslint`, and `globals` are absent from the root dependency tree, and adding them requires package-source access that was not available in this run. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
+- **Test record:** Root `pnpm typecheck`, `pnpm test` (25 files, 127 tests), `pnpm lint`, `pnpm format:check`, and `git diff --check` pass against native sources. The native capture fixture covers capture, start, and explicit finish with lifecycle events. Android/iOS build, emulator, physical-device, WebView-feasibility, and store checks remain open.
 
 ## Historical web verification context
 
