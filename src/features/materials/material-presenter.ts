@@ -86,6 +86,7 @@ export function actionLabel(action: MaterialAction): string {
 
 export function readingRouteParams(material: Material) {
   return {
+    materialId: material.id,
     url: material.originalUrl,
     title: material.title,
     estimate: `${formatDuration(estimatedSeconds(material))} · ${estimateLabel(material)}`,

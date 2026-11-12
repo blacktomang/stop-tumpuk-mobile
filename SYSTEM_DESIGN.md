@@ -122,6 +122,15 @@ The reading route owns the selected material and renders only the saved HTTP(S) 
 
 Remote pages are untrusted and may be hostile, broken, authenticated, paywalled, or incompatible with a mobile WebView. The native UI remains usable when the page fails. WebView feasibility must be checked early against representative intended sources such as a public article, Medium/Substack-style article, YouTube video, and a login/paywall example before the rest of the reading UI is built.
 
+The current native route allows only `http:` and `https:` origins in the WebView. HTTP(S)
+redirects are evaluated by the same policy. `mailto:`, `tel:`, `sms:`, and `geo:` links are
+explicitly handed to `Linking` only after `canOpenURL`; unavailable handlers and thrown open
+errors become visible route messages. `javascript:`, `data:`, `file:`, `blob:`, `about:`, browser
+extension, intent, app-defined, and other unsupported schemes are blocked. Browser fallback accepts
+only HTTP(S), and reports invalid URLs, cancellation, and open failures. The route's WebView
+configuration has no injected script, message bridge, SQLite access, or app-data payload; titles
+and other header values remain native text rendered outside the remote page.
+
 ### NATIVE-002 feasibility probe matrix
 
 The development-build route `/webview-probe` is a deliberately small evidence collector, not the

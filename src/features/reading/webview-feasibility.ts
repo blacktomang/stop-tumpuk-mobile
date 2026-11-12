@@ -167,9 +167,11 @@ export function decisionLabel(decision: WebViewNavigationDecision): string {
     case "external":
       return `External ${decision.scheme} link`;
     case "block":
-      return decision.reason === "unsafe-scheme"
-        ? "Blocked unsafe scheme"
-        : "Blocked malformed URL";
+      if (decision.reason === "unsafe-scheme") return "Blocked unsafe scheme";
+      if (decision.reason === "unsupported-scheme") {
+        return "Blocked unsupported scheme";
+      }
+      return "Blocked malformed URL";
   }
 }
 

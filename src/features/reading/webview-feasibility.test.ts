@@ -98,5 +98,12 @@ describe("WebView feasibility source matrix", () => {
         reason: "unsafe-scheme",
       }),
     ).toBe("Blocked unsafe scheme");
+    expect(
+      decisionLabel({
+        kind: "block",
+        url: "ftp://example.com/file",
+        reason: "unsupported-scheme",
+      }),
+    ).toBe("Blocked unsupported scheme");
   });
 });

@@ -15,8 +15,10 @@ import {
 import { WebView, type WebViewNavigation } from "react-native-webview";
 
 import {
+  createReadingWebViewConfiguration,
   decideWebViewNavigation,
-  externalBrowserFallback,
+  openBrowserFallback,
+  openExternalLink,
 } from "../src/application/webview-policy";
 import {
   initialReadingState,
@@ -140,14 +142,12 @@ export default function ReadingScreen() {
       setMessage("Only a saved HTTP(S) source can be opened in a browser.");
       return;
     }
-    const fallback = externalBrowserFallback(url);
-    if (!fallback) {
+    const result = await openBrowserFallback(url, WebBrowser);
+    if (result.status === "invalid-url") {
       setMessage("This source cannot be handed to the system browser.");
-      return;
-    }
-    try {
-      await WebBrowser.openBrowserAsync(fallback.url);
-    } catch {
+    } else if (result.status === "cancelled") {
+      setMessage("Opening the system browser was cancelled.");
+    } else if (result.status === "failed") {
       setMessage("The system browser could not open this source.");
     }
   }
@@ -156,16 +156,22 @@ export default function ReadingScreen() {
     const decision = decideWebViewNavigation(navigation.url);
     if (decision.kind === "allow") return true;
     if (decision.kind === "block") {
-      setMessage("This navigation was blocked by the reading policy.");
+      setMessage(
+        decision.reason === "unsafe-scheme"
+          ? "This unsafe navigation was blocked by the reading policy."
+          : decision.reason === "unsupported-scheme"
+            ? "This unsupported link was blocked by the reading policy."
+            : "This malformed navigation was blocked by the reading policy.",
+      );
       return false;
     }
     void (async () => {
-      try {
-        const canOpen = await Linking.canOpenURL(decision.url);
-        if (!canOpen) throw new Error("Unavailable");
-        await Linking.openURL(decision.url);
+      const result = await openExternalLink(decision, Linking);
+      if (result.status === "opened") {
         setMessage(`Opened the ${decision.scheme} link outside the reader.`);
-      } catch {
+      } else if (result.status === "unavailable") {
+        setMessage(`No app is available to open the ${decision.scheme} link.`);
+      } else {
         setMessage(`The ${decision.scheme} link could not be opened.`);
       }
     })();
@@ -229,10 +235,8 @@ export default function ReadingScreen() {
               />
             ) : (
               <WebView
-                allowsInlineMediaPlayback
-                javaScriptEnabled
+                {...createReadingWebViewConfiguration(url)}
                 key={`${url}-${reloadToken}`}
-                mediaPlaybackRequiresUserAction
                 onError={(event) =>
                   setState((current) =>
                     readingLoadFailed(
@@ -250,14 +254,12 @@ export default function ReadingScreen() {
                 }
                 onLoadStart={() => setState(readingLoadStarted())}
                 onShouldStartLoadWithRequest={handleExternalNavigation}
-                originWhitelist={["http://*", "https://*"]}
                 renderLoading={() => (
                   <View style={styles.loadingOverlay}>
                     <ActivityIndicator color={colors.accent} />
                     <Text style={styles.muted}>Loading source…</Text>
                   </View>
                 )}
-                source={{ uri: url }}
                 startInLoadingState
                 style={styles.webView}
               />
