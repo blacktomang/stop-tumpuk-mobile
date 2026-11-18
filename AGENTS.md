@@ -42,7 +42,7 @@ Keep `reference/web/` outside native compilation, runtime imports, test discover
 - Preserve current-format web backup IDs and associations through a validated, atomic native import. Separate serialization/validation from storage; reusable transfer code must not import Dexie or browser globals.
 - Treat remote WebView content as untrusted. Do not expose app data or privileged native methods through a broad JavaScript bridge. Handle HTTP(S), external schemes, downloads, and failed navigation deliberately.
 - Audit `crypto.randomUUID`, URL parsing, `fetch` timeouts, subscriptions, file APIs, AppState transitions, and timer lifecycle behavior for the native runtime. Use Expo adapters where needed and test foreground/background recovery.
-- Use NativeWind with the selected stable Tailwind major recorded in `TECH_STACK.md`; do not copy the historical Tailwind 4 web setup. Preserve semantic labels, touch targets, keyboard/screen-reader behavior where applicable, contrast, and reduced-motion behavior.
+- Use PanelUI with Uniwind and the selected Tailwind major recorded in `TECH_STACK.md`. Mount one root `PanelUIProvider`, use PanelUI semantic tokens rather than literal colours, and preserve semantic labels, touch targets, keyboard/screen-reader behavior where applicable, contrast, and reduced-motion behavior.
 - Use pnpm and one active root `pnpm-lock.yaml`. Do not introduce npm, Yarn, Bun, or a second lockfile. Use `expo install` for Expo-managed native versions and record the resolved versions in the root manifest and lockfile when scaffolding happens.
 - Do not put secrets in bundled app configuration. External provider keys are optional and public if shipped; core capture and planning must work without them.
 - Use Prettier as the formatting authority. Keep generated native directories and `reference/web/` out of routine formatting unless a task explicitly requires them.
@@ -57,14 +57,7 @@ For ordinary native TypeScript changes, run `pnpm typecheck`. Add focused domain
 Verification must distinguish:
 
 - automated unit/storage/component checks;
-- Android emulator checks;
-- Android physical-device checks;
-- iOS simulator checks;
-- iOS physical-device, signing, and store-release checks.
-
-Prioritize tests for estimate override precedence and zero/unknown values, capacity overflow, single-item recommendation fitting, destination-aware capture, lifecycle transitions, SQLite initialization and migrations, current-format web-backup import integrity, multiple notes, timer interruption recovery, WebView navigation/error/fallback behavior, and the main capture-to-finish flow. Mock provider responses. Do not let live websites determine whether domain or repository tests pass.
-
-Validate native incoming sharing on an installed Android build and a configured iOS build separately. A simulated deep link or browser test does not prove that the OS share menu launches the app. Test WebView feasibility against representative intended websites before investing in every screen. Record physical-device and store checks as open until they run.
+never run a build
 
 ## Reporting
 

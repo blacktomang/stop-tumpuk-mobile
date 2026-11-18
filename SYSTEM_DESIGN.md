@@ -25,14 +25,14 @@ flowchart TD
     Reader --> External[System browser via Linking/WebBrowser]
 ```
 
-The app shell, forms, lists, dialogs, timer, and status messages are React Native screens and components. Domain rules never import React Native, Expo, SQLite, WebView, filesystem APIs, or provider SDKs. Application services coordinate use cases but do not render UI. Repositories own all SQL and transaction boundaries. Platform adapters own native intents, file/document access, UUID generation, external-browser opening, app lifecycle signals, and timer wake/recovery hooks.
+The app shell, forms, lists, dialogs, timer, and status messages are React Native screens and PanelUI components. `PanelUIProvider` is mounted exactly once at the root; it owns the themed surface and overlay portal. Uniwind compiles Tailwind layout classes and PanelUI semantic tokens from the single root CSS entry. Domain rules never import React Native, Expo, SQLite, WebView, filesystem APIs, provider SDKs, or PanelUI. Application services coordinate use cases but do not render UI. Repositories own all SQL and transaction boundaries. Platform adapters own native intents, file/document access, UUID generation, external-browser opening, app lifecycle signals, and timer wake/recovery hooks.
 
 ## Planned source layout
 
 ```text
 src/
   app/                         # Expo Router routes and +native-intent.ts
-  components/                  # NativeWind-styled semantic controls
+  components/                  # PanelUI compositions and app-specific semantic controls
   features/
     capture/                   # Paste/share staging and destination-aware form
     dashboard/                 # Capacity view and one next recommendation

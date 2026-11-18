@@ -11,7 +11,7 @@
 | App runtime | Expo SDK 58 with React Native 0.88 and React 19.3 | Official SDK 58 reference maps these versions; use `expo install` to resolve SDK-managed packages. |
 | Language | Strict TypeScript | Domain, repositories, transfer validation, and platform adapters share explicit types. |
 | Navigation | Expo Router `~58.0.30` | File-based native routes and deep-link/native-intent handling. |
-| Styling | NativeWind `4.2.7` stable line with Tailwind CSS 3.4.x | NativeWind 4 requires Tailwind 3. Do not copy the web Tailwind 4 setup. NativeWind 5 is pre-release and is not the migration target. |
+| UI and styling | PanelUI Native `^1.4.0` with Uniwind `^1.13.2` and Tailwind CSS `^4.3.3` | PanelUI supplies semantic native components, themes, overlay primitives, and the root provider. Uniwind compiles the Tailwind classes it and app layout use. NativeWind is not part of the native target. |
 | Persistence | `expo-sqlite ~58.0.15` behind repositories | SQLite is persisted across app restarts; schema and migrations stay behind an application boundary. |
 | Reading | `react-native-webview 14.0.1` | In-app source reading on Android/iOS, with explicit loading/error/navigation and external-browser fallback. |
 | Native inbound sharing | `expo-sharing ~58.0.22` plus Expo Router native-intent/configuration | Android intent filters and iOS share-extension/App Group behavior require a configured native build; receiving is distinct from outbound sharing. |
@@ -21,19 +21,19 @@
 | Testing | Vitest for domain/transfer/repository rules; React Native component tests only when useful; emulator/device checklists for native behavior | Live web providers are mocked. Native share and WebView claims require platform-specific checks. |
 | Formatting/linting | Prettier plus a TypeScript-aware linter selected at scaffold time | Do not format `reference/web/` or generated native directories as part of routine work. |
 
-The resolved target versions are recorded in the root `package.json` and were installed and checked in the temporary scaffold; the root `pnpm-lock.yaml` is still pending. The temporary scaffold's `expo-doctor` run passed all 20 checks. Until the root install is authorized and completed, these are compatibility evidence rather than a passing root build. If an SDK release changes before the root install, re-check the official compatibility table and update this document before changing the target.
+The resolved target versions are recorded in the root `package.json` and `pnpm-lock.yaml`. PanelUI's required Metro/CSS integration lives in `metro.config.js` and `global.css`; `PanelUIProvider` is mounted once in the root Expo Router layout. If an SDK release changes before a dependency update, re-check the official compatibility table and PanelUI/Uniwind peer requirements before changing the target.
 
 ## Version evidence
 
-The Expo SDK 58 reference states that SDK 58 targets React Native 0.88, React 19.3, and Node 22.13.x or newer. Its package references list Expo Router `~58.0.30`, `expo-sqlite ~58.0.15`, `expo-sharing ~58.0.22`, and `react-native-webview 14.0.1`. The NativeWind documentation identifies 4.2.7 as the stable line using Tailwind CSS 3 and identifies v5 as pre-release using Tailwind 4. These links were checked while preparing this plan and must be rechecked during scaffold review:
+The Expo SDK 58 reference states that SDK 58 targets React Native 0.88, React 19.3, and Node 22.13.x or newer. Its package references list Expo Router `~58.0.30`, `expo-sqlite ~58.0.15`, `expo-sharing ~58.0.22`, and `react-native-webview 14.0.1`. PanelUI Native `1.4.0` declares Expo SDK 57+, React Native 0.86+, Tailwind CSS 4+, Uniwind, Reanimated, Worklets, Gesture Handler, Safe Area Context, SVG, Masked View, and Expo Linear Gradient as its required runtime stack. These links and installed peer ranges must be rechecked during dependency updates:
 
 - [Expo SDK 58 reference](https://docs.expo.dev/versions/v58.0.0/)
 - [Expo Router SDK 58](https://docs.expo.dev/versions/v58.0.0/sdk/router/)
 - [`expo-sqlite` SDK 58](https://docs.expo.dev/versions/v58.0.0/sdk/sqlite/)
 - [`expo-sharing` SDK 58](https://docs.expo.dev/versions/v58.0.0/sdk/sharing/)
 - [`react-native-webview` SDK 58](https://docs.expo.dev/versions/v58.0.0/sdk/webview/)
-- [NativeWind stable overview](https://www.nativewind.dev/docs)
-- [NativeWind v5 installation notes](https://www.nativewind.dev/v5/getting-started/installation)
+- [PanelUI installation guide](https://panelui.dev/docs/installation)
+- [Uniwind documentation](https://uniwind.dev/)
 
 ## Planned scripts after scaffolding
 

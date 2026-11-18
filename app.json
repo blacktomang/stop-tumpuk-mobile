@@ -20,7 +20,9 @@
             ]
           }
         }
-      ]
+      ],
+      "expo-status-bar",
+      "expo-web-browser"
     ],
     "android": {
       "predictiveBackGestureEnabled": false,

@@ -1,0 +1,26 @@
+{
+  "version": 2,
+  "skills": {
+    "apparatus": {
+      "source": "panel-ui/PanelUI",
+      "commit": "880bd3d0788c3905bb61201bf8913ffa4581d0f8",
+      "sourceType": "github",
+      "skillPath": "skills/apparatus/SKILL.md",
+      "computedHash": "9466a8e38636893ff9e2f5721b8b1aa52eaa19610653330f2efe76f945409adb"
+    },
+    "logo-maker": {
+      "source": "panel-ui/PanelUI",
+      "commit": "880bd3d0788c3905bb61201bf8913ffa4581d0f8",
+      "sourceType": "github",
+      "skillPath": "skills/logo-maker/SKILL.md",
+      "computedHash": "7c0726b1f9a2cba04b7f971fd03f2d87e4a4732194d90277c19ee4c04ec510ae"
+    },
+    "panelui": {
+      "source": "panel-ui/PanelUI",
+      "commit": "880bd3d0788c3905bb61201bf8913ffa4581d0f8",
+      "sourceType": "github",
+      "skillPath": "skills/panelui/SKILL.md",
+      "computedHash": "4e0be9b4ddee92468b1c34be68e586f0ec8f03e5df5be6a07bac50f07be98023"
+    }
+  }
+}

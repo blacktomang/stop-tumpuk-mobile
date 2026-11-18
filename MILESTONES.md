@@ -24,9 +24,9 @@ The working sequencing assumption is Android first for implementation and valida
 
 - [x] **FR references:** FR-15; [TECH_STACK.md](TECH_STACK.md).
 - **Dependencies:** None.
-- **Deliverable:** A temporary Expo SDK 58 scaffold plan using pnpm, strict TypeScript, Expo Router, NativeWind 4.2.7 with Tailwind CSS 3.4.x, `expo-sqlite`, `react-native-webview`, and `expo-sharing`; a root package/lockfile plan; documented Node and Android-first development-build requirements.
-- **Verification:** In the temporary directory, run the scaffold's dependency resolver, `expo-doctor`, and version inspection. Compare resolved versions with official Expo and NativeWind compatibility references. Keep the root dependency install gated until the native scaffold is explicitly authorized.
-- **Complete when:** The chosen versions are mutually compatible, the resolved versions are recorded for the later merge, and no web Tailwind 4, Dexie, Vite, service-worker, or Headless UI dependency is part of the native target.
+- **Deliverable:** An Expo SDK 58 scaffold using pnpm, strict TypeScript, Expo Router, PanelUI Native with Uniwind and Tailwind CSS 4, `expo-sqlite`, `react-native-webview`, and `expo-sharing`; a root package/lockfile plan; documented Node and Android-first development-build requirements.
+- **Verification:** Run Expo's dependency resolver and `expo-doctor`; inspect the resolved PanelUI/Uniwind peer versions, Metro/CSS entry, and root provider; compare them with official Expo and PanelUI compatibility references.
+- **Complete when:** The chosen versions are mutually compatible, the resolved versions and PanelUI integration are recorded, and no NativeWind, Dexie, Vite, service-worker, or Headless UI dependency is part of the native target.
 
 ### NATIVE-002 — Run the early WebView feasibility check
 
@@ -134,7 +134,7 @@ produce an evidence record.
 
 - [ ] **FR references:** FR-06, FR-12.
 - **Dependencies:** NATIVE-030, NATIVE-020.
-- **Deliverable:** NativeWind dashboard capacity message and accessible meter using the pure capacity view model, with unknown count, headroom, overflow, and plain-language projection.
+- **Deliverable:** PanelUI/Uniwind dashboard capacity message and accessible meter using the pure capacity view model, with unknown count, headroom, overflow, and plain-language projection.
 - **Verification:** Automated view-model tests and Android emulator checks for empty, under, full, overflow, unknown, zero, and unset states, including reduced-motion behavior.
 - **Complete when:** The dashboard never divides by zero, hides overflow, or presents the meter as completion progress.
 
