@@ -27,6 +27,8 @@ flowchart TD
 
 The app shell, forms, lists, dialogs, timer, and status messages are React Native screens and PanelUI components. `PanelUIProvider` is mounted exactly once at the root; it owns the themed surface and overlay portal. Uniwind compiles Tailwind layout classes and PanelUI semantic tokens from the single root CSS entry. Domain rules never import React Native, Expo, SQLite, WebView, filesystem APIs, provider SDKs, or PanelUI. Application services coordinate use cases but do not render UI. Repositories own all SQL and transaction boundaries. Platform adapters own native intents, file/document access, UUID generation, external-browser opening, app lifecycle signals, and timer wake/recovery hooks.
 
+For FR-15, the Expo splash plugin shows the launcher mark while the native app starts. The root layout mounts navigation immediately and keeps the native splash visible until the React Native splash overlay lays out. The overlay animates only the link and its own opacity, so the initial route and native share handling can proceed underneath it.
+
 ## Planned source layout
 
 ```text

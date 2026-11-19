@@ -9,6 +9,14 @@
     "userInterfaceStyle": "automatic",
     "plugins": [
       "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FAF0E1",
+          "image": "./assets/icon.png",
+          "imageWidth": 144
+        }
+      ],
       "expo-sqlite",
       [
         "expo-sharing",
