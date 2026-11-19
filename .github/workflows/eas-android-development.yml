@@ -1,4 +1,4 @@
-name: EAS Android preview
+name: EAS Android development
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  android-preview:
+  android-development:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -27,7 +27,7 @@ jobs:
       - name: Install project dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build Android preview on EAS
+      - name: Build Android development client on EAS
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: pnpm dlx eas-cli@27.7.0 build --platform android --profile preview --non-interactive
+        run: pnpm dlx eas-cli@27.7.0 build --platform android --profile development --non-interactive
