@@ -108,9 +108,9 @@ produce an evidence record.
 
 - [ ] **FR references:** FR-02, FR-05, FR-12.
 - **Dependencies:** NATIVE-020.
-- **Deliverable:** Expo Router capture screen with URL/text input, visible Reading plan/Inbox choice defaulted per new capture, duplicate confirmation, validation/error states, and accessible touch targets.
+- **Deliverable:** Expo Router capture screen with URL/text input, visible Reading plan and Save for later choices defaulted per new capture, duplicate confirmation, validation/error states, and accessible touch targets.
 - **Verification:** Automated/component checks for destination reset between captures, keyboard submission, duplicate retry, error preservation, and mobile layout on an Android emulator.
-- **Complete when:** Paste-to-save works through the real SQLite repository and success copy accurately distinguishes committed Reading plan from Inbox.
+- **Complete when:** Paste-to-save works through the real SQLite repository and success copy accurately distinguishes Reading plan from Later.
 
 ### NATIVE-022 — Add optional metadata adapters
 
@@ -150,7 +150,7 @@ produce an evidence record.
 
 - [ ] **FR references:** FR-05, FR-09, FR-12.
 - **Dependencies:** NATIVE-020, NATIVE-031, NATIVE-032.
-- **Deliverable:** Inbox, Reading plan, In Progress, Finished, and Archived views with search/filter, edit, commit, return, reopen, archive, delete, and transactional event history.
+- **Deliverable:** A dedicated Later tab and a Library with all-material search, status filters, editing, lifecycle actions, and transactional event history.
 - **Verification:** Automated repository/application tests plus emulator checks for each transition, failed writes, delete cascades, and accessible action grouping.
 - **Complete when:** Lifecycle changes update capacity and Read next immediately after a durable save and archive is never counted as completion.
 
@@ -268,12 +268,12 @@ produce an evidence record.
 - **NATIVE-002:** The `/webview-probe` development-build route, representative source matrix, policy evidence model, loading/error state, and browser fallback are committed; Android emulator and physical-device observations remain open.
 - **NATIVE-040:** Native reading route, HTTP(S)-only URL boundary, title/estimate/source header, progress, storage-failure messaging, retry/error state, and browser fallback are committed; Android/iOS runtime behavior remains open.
 - **NATIVE-041:** WebView navigation isolation, unsafe-scheme blocking, external-scheme handoff, browser fallback, and no-bridge boundary documentation are committed; emulator/physical-device navigation checks remain open.
-- **NATIVE-042:** Explicit Finish from the reading route now uses transactional lifecycle service, returns to Materials, refreshes state, and never infers completion from WebView or timer events; device flow checks remain open.
+- **NATIVE-042:** Explicit Finish from the reading route now uses transactional lifecycle service, returns to the originating tab, refreshes state, and never infers completion from WebView or timer events; device flow checks remain open.
 - **NATIVE-014:** Versioned migration initialization, repeat-open persistence, skipped-version, newer-schema rejection, rollback, and no-reset tests exist under `src/storage/sqlite/`; native runtime recovery checks remain open.
 - **NATIVE-013:** Additive transfer validation/import, repository-backed export, native file-picker/filesystem UI, and mocked SQLite current-format round-trip coverage are committed; native file-provider behavior remains open for device validation.
 - **NATIVE-020:** A repository-injected native capture service and destination-aware capture route exist under `src/application/capture-service.ts` and `app/index.tsx`, covering save-first capture, duplicate retry with surfaced retry failures, staged-share consumption, and optional enrichment; native persistence/device checks remain open.
-- **NATIVE-033/NATIVE-042:** Lifecycle commands and UI wiring for commit, start, finish, reopen, return to Inbox, archive, and delete are committed; runtime persistence/device checks remain open.
-- **NATIVE-033:** Native Materials route, status views, search/filter, editing, lifecycle actions, advanced-action grouping, delete confirmation, and transactional material-edit validation coverage are committed; emulator/device persistence checks remain open.
+- **NATIVE-033/NATIVE-042:** Lifecycle commands and UI wiring for commit, start, finish, reopen, move to Later, archive, and delete are committed; runtime persistence/device checks remain open.
+- **NATIVE-033:** Native Library and Later routes, status views, search/filter, editing, lifecycle actions, advanced-action grouping, delete confirmation, and transactional material-edit validation coverage are committed; emulator/device persistence checks remain open.
 - **NATIVE-050:** Independent plain-text notes UI, sibling-preserving edit/delete/search, fresh-service reload for finished items, invalid-input validation, and finished-item primary-action coverage are committed; emulator checks remain open.
 - **NATIVE-052:** Native import/export route, conflict preview, rejected-file handling, atomic import messaging, local-only guidance, transfer-preview edge coverage, and native file-adapter cancellation/error coverage are committed; emulator/iOS file-provider checks remain open.
 - **NATIVE-060:** Android share payload parsing, mixed-payload selection, staged intake handoff, consumed-intake protection across relaunch, duplicate retry semantics, native-intent routing, and malformed/unavailable fallback are committed; installed-build/emulator/physical-device share checks remain open.

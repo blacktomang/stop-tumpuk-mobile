@@ -104,6 +104,16 @@ describe("material management view queries", () => {
       searchMaterials([base, other], "in-progress", "example.com"),
     ).toEqual([other]);
   });
+
+  it("keeps saved-for-later links separate and includes them in Library search", () => {
+    const later: Material = { ...base, id: "later", status: "inbox" };
+    const finished: Material = { ...base, id: "finished", status: "completed" };
+    const library = [base, later, finished];
+
+    expect(searchMaterials(library, "inbox", "")).toEqual([later]);
+    expect(searchMaterials(library, "all", base.title)).toEqual(library);
+    expect(searchMaterials(library, "all", "no match")).toEqual([]);
+  });
 });
 
 describe("material management edits", () => {

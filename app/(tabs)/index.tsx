@@ -1,16 +1,12 @@
 import { randomUUID } from "expo-crypto";
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
+import { Button, Card, Input, RadioGroup, Text } from "panelui-native";
 import { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
   ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
   View,
 } from "react-native";
 
@@ -18,17 +14,6 @@ import { createCaptureService } from "../../src/application/capture-service";
 import type { CaptureDestination } from "../../src/application/capture-service";
 import { openNativeRepositories } from "../../src/storage/sqlite/expo-sqlite-adapter";
 import type { NativeRepositories } from "../../src/storage/sqlite/repositories";
-
-const colors = {
-  ink: "#17211B",
-  muted: "#647067",
-  paper: "#F6F7F2",
-  panel: "#FFFFFF",
-  line: "#DDE4DC",
-  accent: "#2E6B4D",
-  accentSoft: "#E5F0E7",
-  danger: "#A53D32",
-};
 
 export default function HomeScreen() {
   const { intakeId, shareError } = useLocalSearchParams<{
@@ -43,6 +28,7 @@ export default function HomeScreen() {
   const [destination, setDestination] = useState<CaptureDestination>("queued");
   const [stagedIntakeId, setStagedIntakeId] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
+  const [savedTo, setSavedTo] = useState<CaptureDestination | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
@@ -54,7 +40,7 @@ export default function HomeScreen() {
       .catch(() => {
         if (mounted)
           setDatabaseError(
-            "Local storage is unavailable. Try reopening the app before saving.",
+            "Local storage is unavailable. Reopen the app to retry.",
           );
       });
     return () => {
@@ -71,10 +57,11 @@ export default function HomeScreen() {
       nextShareError === "unavailable" ||
       nextShareError === "ios-unsupported"
     ) {
+      setSavedTo(null);
       setStatus(
         nextShareError === "ios-unsupported"
-          ? "iOS sharing is not available in this build. Paste the link below to continue."
-          : "That share could not be opened. Paste the link below to continue.",
+          ? "Sharing is unavailable on iOS in this build. Paste the link below."
+          : "Could not open the share. Paste the link below.",
       );
     }
     if (!repositories || !nextIntakeId) return;
@@ -85,20 +72,18 @@ export default function HomeScreen() {
       .then((intake) => {
         if (!mounted) return;
         if (!intake || intake.consumedAt !== null) {
-          setStatus(
-            "That shared link is no longer available. Paste it below to continue.",
-          );
+          setStatus("That share has expired. Paste the link below.");
           return;
         }
         setUrl(intake.url);
         setStagedIntakeId(intake.id);
-        setStatus("Shared link staged. Choose a destination, then save it.");
+        setDestination("queued");
+        setSavedTo(null);
+        setStatus("Shared link ready to save.");
       })
       .catch(() => {
         if (mounted)
-          setStatus(
-            "The shared link could not be loaded. Paste it below to continue.",
-          );
+          setStatus("Could not load the share. Paste the link below.");
       });
     return () => {
       mounted = false;
@@ -109,20 +94,29 @@ export default function HomeScreen() {
     () =>
       repositories
         ? createCaptureService({
-          repositories,
-          generateId: randomUUID,
-          now: () => new Date().toISOString(),
-        })
+            repositories,
+            generateId: randomUUID,
+            now: () => new Date().toISOString(),
+          })
         : null,
     [repositories],
   );
 
+  function showSaved(savedDestination: CaptureDestination) {
+    setUrl("");
+    setStagedIntakeId(null);
+    setDestination("queued");
+    setSavedTo(savedDestination);
+  }
+
   async function saveCapture() {
-    if (!captureService || !url.trim()) {
+    if (isSaving || !captureService) return;
+    if (!url.trim()) {
       setStatus("Paste an HTTP(S) link to continue.");
       return;
     }
     setIsSaving(true);
+    setSavedTo(null);
     setStatus(null);
     try {
       const result = stagedIntakeId
@@ -130,8 +124,8 @@ export default function HomeScreen() {
         : await captureService.captureUrl(url, destination);
       if (result.kind === "duplicate") {
         Alert.alert(
-          "Already in your queue",
-          `${result.existing.title} is already saved. Save another copy anyway?`,
+          "Link already saved",
+          `Save another copy of “${result.existing.title}”?`,
           [
             { text: "Cancel", style: "cancel" },
             {
@@ -146,9 +140,7 @@ export default function HomeScreen() {
                       setStatus("That link could not be saved again.");
                       return;
                     }
-                    setUrl("");
-                    setStagedIntakeId(null);
-                    setStatus("Saved a second copy.");
+                    showSaved(destination);
                   })
                   .catch((retryError) => {
                     setStatus(
@@ -163,13 +155,7 @@ export default function HomeScreen() {
           ],
         );
       } else {
-        setUrl("");
-        setStagedIntakeId(null);
-        setStatus(
-          destination === "queued"
-            ? "Added to Reading plan."
-            : "Saved to Inbox.",
-        );
+        showSaved(destination);
       }
     } catch (error) {
       setStatus(
@@ -185,236 +171,119 @@ export default function HomeScreen() {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : undefined}
-      style={styles.screen}
+      className="flex-1 bg-background"
     >
-      <ScrollView
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>STOP-TUMPUK</Text>
-          <Text style={styles.title}>Make room to finish.</Text>
-          <Text style={styles.intro}>
-            Save something useful now. Decide whether it belongs in your
-            Reading plan or Inbox.
-          </Text>
-        </View>
+      <ScrollView keyboardShouldPersistTaps="handled">
+        <View className="mx-auto w-full max-w-lg gap-6 px-5 py-6">
+          <View className="gap-2">
+            <Text weight="bold" className="text-primary">
+              stop-tumpuk
+            </Text>
+            <Text
+              accessibilityRole="header"
+              weight="bold"
+              className="text-4xl tracking-tight"
+            >
+              Save a link
+            </Text>
+            <Text className="text-muted-foreground">
+              Add an article or video to read later.
+            </Text>
+          </View>
 
-        <View style={styles.card}>
-          <Text style={styles.label}>SOURCE LINK</Text>
-          <TextInput
-            accessibilityLabel="Source URL"
+          <Input
+            label="Link"
+            size="lg"
             autoCapitalize="none"
             autoCorrect={false}
+            disabled={isSaving}
             keyboardType="url"
-            onChangeText={setUrl}
+            onChangeText={(value) => {
+              setUrl(value);
+              setSavedTo(null);
+              setStatus(null);
+            }}
             onSubmitEditing={() => void saveCapture()}
-            placeholder="https://..."
-            placeholderTextColor="#9AA59B"
+            placeholder="https://example.com"
             returnKeyType="done"
-            style={styles.input}
             value={url}
           />
 
-          <Text style={[styles.label, styles.destinationLabel]}>SAVE TO</Text>
-          <View accessibilityRole="radiogroup" style={styles.destinationRow}>
-            <DestinationButton
-              active={destination === "queued"}
-              description="Counts toward your time"
-              label="Reading plan"
-              onPress={() => setDestination("queued")}
-            />
-            <DestinationButton
-              active={destination === "inbox"}
-              description="Keep it for later"
-              label="Inbox"
-              onPress={() => setDestination("inbox")}
-            />
+          <View className="gap-2">
+            <Text weight="semibold">Save to</Text>
+            <RadioGroup
+              accessibilityLabel="Save to"
+              disabled={isSaving}
+              value={destination}
+              variant="card"
+              onValueChange={(value) => {
+                if (value === "queued" || value === "inbox")
+                  setDestination(value);
+              }}
+            >
+              <RadioGroup.Item
+                className={destination === "queued" ? "bg-accent" : "bg-card"}
+                value="queued"
+                label="Reading plan"
+                description="Counts toward planned time"
+              />
+              <RadioGroup.Item
+                className={destination === "inbox" ? "bg-accent" : "bg-card"}
+                value="inbox"
+                label="Save for later"
+                description="Keep it outside the plan"
+              />
+            </RadioGroup>
           </View>
 
-          <Pressable
-            accessibilityLabel="Save source"
-            accessibilityRole="button"
-            disabled={isSaving || !repositories}
+          <Button
+            size="lg"
+            fullWidth
+            disabled={!repositories}
+            loading={isSaving}
             onPress={() => void saveCapture()}
-            style={({ pressed }) => [
-              styles.saveButton,
-              pressed && styles.pressed,
-              (isSaving || !repositories) && styles.disabled,
-            ]}
           >
-            {isSaving ? (
-              <ActivityIndicator color="#FFFFFF" />
-            ) : (
-              <Text style={styles.saveText}>Save source</Text>
-            )}
-          </Pressable>
-          {status ? <Text style={styles.status}>{status}</Text> : null}
-          {databaseError ? (
-            <Text style={styles.error}>{databaseError}</Text>
-          ) : null}
-        </View>
+            {destination === "queued"
+              ? "Save to Reading plan"
+              : "Save for later"}
+          </Button>
 
-        <View style={styles.note}>
-          <Text style={styles.noteMark}>i</Text>
-          <Text style={styles.noteText}>
-            Metadata and estimates are optional. Your capture is saved locally
-            first, even when a source cannot be enriched.
-          </Text>
+          {savedTo ? (
+            <Card className="flex-row flex-wrap items-center justify-between gap-2 border-primary p-3">
+              <Text
+                accessibilityLiveRegion="polite"
+                weight="semibold"
+                className="text-primary"
+              >
+                {savedTo === "queued"
+                  ? "Saved to Reading plan"
+                  : "Saved for later"}
+              </Text>
+              <Button
+                variant="ghost"
+                onPress={() =>
+                  router.navigate(
+                    savedTo === "queued" ? "/dashboard" : "/later",
+                  )
+                }
+              >
+                {savedTo === "queued" ? "View plan →" : "View later →"}
+              </Button>
+            </Card>
+          ) : null}
+          {status ? (
+            <Text accessibilityLiveRegion="polite">{status}</Text>
+          ) : null}
+          {databaseError ? (
+            <Text
+              accessibilityLiveRegion="polite"
+              className="text-destructive-foreground"
+            >
+              {databaseError}
+            </Text>
+          ) : null}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
-
-function DestinationButton({
-  active,
-  description,
-  label,
-  onPress,
-}: {
-  active: boolean;
-  description: string;
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      accessibilityRole="radio"
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.destination,
-        active && styles.destinationActive,
-        pressed && styles.pressed,
-      ]}
-    >
-      <View style={[styles.radio, active && styles.radioActive]}>
-        {active ? <View style={styles.radioDot} /> : null}
-      </View>
-      <View style={styles.destinationCopy}>
-        <Text
-          style={[
-            styles.destinationTitle,
-            active && styles.destinationTitleActive,
-          ]}
-        >
-          {label}
-        </Text>
-        <Text style={styles.destinationDescription}>{description}</Text>
-      </View>
-    </Pressable>
-  );
-}
-
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.paper },
-  content: { flexGrow: 1, padding: 24, paddingTop: 68, gap: 24 },
-  header: { gap: 12, maxWidth: 480 },
-  eyebrow: {
-    color: colors.accent,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 2,
-  },
-  title: {
-    color: colors.ink,
-    fontSize: 36,
-    fontWeight: "700",
-    letterSpacing: -1.2,
-    lineHeight: 42,
-  },
-  intro: { color: colors.muted, fontSize: 17, lineHeight: 25 },
-  card: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
-    borderRadius: 18,
-    borderWidth: 1,
-    padding: 18,
-    gap: 10,
-  },
-  label: {
-    color: colors.muted,
-    fontSize: 11,
-    fontWeight: "800",
-    letterSpacing: 1.4,
-  },
-  input: {
-    borderColor: colors.line,
-    borderRadius: 10,
-    borderWidth: 1,
-    color: colors.ink,
-    fontSize: 16,
-    minHeight: 52,
-    paddingHorizontal: 14,
-  },
-  destinationLabel: { marginTop: 12 },
-  destinationRow: { gap: 10 },
-  destination: {
-    alignItems: "center",
-    borderColor: colors.line,
-    borderRadius: 12,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 12,
-    minHeight: 62,
-    padding: 12,
-  },
-  destinationActive: {
-    backgroundColor: colors.accentSoft,
-    borderColor: colors.accent,
-  },
-  radio: {
-    alignItems: "center",
-    borderColor: "#A7B2A9",
-    borderRadius: 20,
-    borderWidth: 1,
-    height: 20,
-    justifyContent: "center",
-    width: 20,
-  },
-  radioActive: { borderColor: colors.accent },
-  radioDot: {
-    backgroundColor: colors.accent,
-    borderRadius: 8,
-    height: 10,
-    width: 10,
-  },
-  destinationCopy: { gap: 2 },
-  destinationTitle: { color: colors.ink, fontSize: 15, fontWeight: "700" },
-  destinationTitleActive: { color: colors.accent },
-  destinationDescription: { color: colors.muted, fontSize: 13 },
-  saveButton: {
-    alignItems: "center",
-    backgroundColor: colors.accent,
-    borderRadius: 10,
-    justifyContent: "center",
-    minHeight: 52,
-    marginTop: 8,
-  },
-  saveText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
-  pressed: { opacity: 0.84, transform: [{ translateY: 1 }] },
-  disabled: { opacity: 0.5 },
-  status: { color: colors.accent, fontSize: 14, lineHeight: 20 },
-  error: { color: colors.danger, fontSize: 14, lineHeight: 20 },
-  note: {
-    alignItems: "flex-start",
-    flexDirection: "row",
-    gap: 10,
-    paddingHorizontal: 4,
-  },
-  noteMark: {
-    alignItems: "center",
-    borderColor: colors.muted,
-    borderRadius: 10,
-    borderWidth: 1,
-    color: colors.muted,
-    fontSize: 12,
-    fontWeight: "700",
-    height: 20,
-    lineHeight: 18,
-    textAlign: "center",
-    width: 20,
-  },
-  noteText: { color: colors.muted, flex: 1, fontSize: 13, lineHeight: 20 },
-});
