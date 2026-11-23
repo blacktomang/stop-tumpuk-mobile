@@ -19,14 +19,16 @@ describe("material action hierarchy", () => {
     );
   });
 
-  it("names all five material views with product copy", () => {
+  it("labels the Library filters and Later actions", () => {
     expect(materialFilters.map(({ label }) => label)).toEqual([
-      "Inbox",
+      "All",
+      "Later",
       "Reading plan",
       "In Progress",
       "Finished",
       "Archived",
     ]);
-    expect(actionLabel("return-to-inbox")).toBe("Return to Inbox");
+    expect(actionLabel("commit")).toBe("Add to Reading plan");
+    expect(actionLabel("return-to-inbox")).toBe("Move to Later");
   });
 });

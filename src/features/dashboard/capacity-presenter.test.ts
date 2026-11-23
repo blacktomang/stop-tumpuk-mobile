@@ -16,12 +16,11 @@ const model = (overrides: Partial<CapacityViewModel>): CapacityViewModel => ({
 });
 
 describe("capacity presentation", () => {
-  it("keeps the under-capacity message conversational and accessible", () => {
+  it("summarizes known time, capacity, headroom, and unestimated items", () => {
     expect(presentCapacity(model({}))).toMatchObject({
-      message: "You have 30 min of room left this week.",
-      detail: "30 min planned · 1 item without an estimate",
+      message: "30 of 60 min planned",
+      detail: "30 min left · 1 item unestimated",
       meterValue: 50,
-      meterText: "30 min available",
       tone: "positive",
     });
   });
@@ -37,8 +36,12 @@ describe("capacity presentation", () => {
           overflowSeconds: null,
           clearanceWeeks: null,
         }),
-      ).meterValue,
-    ).toBeNull();
+      ),
+    ).toMatchObject({
+      message: "30 min planned",
+      detail: "Weekly availability not set · 1 item unestimated",
+      meterValue: null,
+    });
     expect(
       presentCapacity(
         model({
@@ -49,8 +52,12 @@ describe("capacity presentation", () => {
           overflowSeconds: 1_800,
           clearanceWeeks: null,
         }),
-      ).message,
-    ).toContain("no available minutes");
+      ),
+    ).toMatchObject({
+      message: "30 of 0 min planned",
+      detail: "No time available this week · 1 item unestimated",
+      meterValue: null,
+    });
   });
 
   it("keeps overflow visible instead of clipping it to a success state", () => {
@@ -65,10 +72,12 @@ describe("capacity presentation", () => {
         clearanceWeeks: 1.5,
       }),
     );
-    expect(presentation.message).toBe(
-      "Your known plan is 30 min over this week’s capacity.",
-    );
-    expect(presentation.meterText).toBe("30 min over capacity");
+    expect(presentation.message).toBe("90 of 60 min planned");
+    expect(presentation).toMatchObject({
+      detail: "30 min over capacity · 1 item unestimated",
+      meterValue: 100,
+      tone: "danger",
+    });
     expect(capacityProjection(model({ clearanceWeeks: 1.5 }))).toContain(
       "1.5 weeks",
     );
@@ -89,9 +98,9 @@ describe("capacity presentation", () => {
         }),
       ),
     ).toMatchObject({
-      message: "You have room for a fresh commitment this week.",
+      message: "0 of 60 min planned",
       meterValue: 0,
-      meterText: "60 min available",
+      detail: "60 min left",
     });
 
     expect(
@@ -106,9 +115,9 @@ describe("capacity presentation", () => {
         }),
       ),
     ).toMatchObject({
-      message: "Your known plan fills this week exactly.",
+      message: "60 of 60 min planned",
       meterValue: 100,
-      meterText: "At capacity",
+      detail: "At capacity · 1 item unestimated",
     });
 
     expect(
@@ -122,7 +131,7 @@ describe("capacity presentation", () => {
           clearanceWeeks: 0,
         }),
       ).detail,
-    ).toBe("0 min planned · 2 items without an estimate");
+    ).toBe("60 min left · 2 items unestimated");
   });
 
   it("does not invent a clearance projection for zero capacity", () => {
@@ -137,6 +146,6 @@ describe("capacity presentation", () => {
           clearanceWeeks: null,
         }),
       ),
-    ).toBe("There is no clearance estimate until capacity is configured.");
+    ).toBeNull();
   });
 });

@@ -6,7 +6,8 @@ export const materialFilters: readonly {
   key: MaterialListFilter;
   label: string;
 }[] = [
-  { key: "inbox", label: "Inbox" },
+  { key: "all", label: "All" },
+  { key: "inbox", label: "Later" },
   { key: "reading-plan", label: "Reading plan" },
   { key: "in-progress", label: "In Progress" },
   { key: "finished", label: "Finished" },
@@ -64,7 +65,7 @@ export function actionGroupForStatus(
 export function actionLabel(action: MaterialAction): string {
   switch (action) {
     case "commit":
-      return "Commit";
+      return "Add to Reading plan";
     case "open":
       return "Open source";
     case "start":
@@ -74,7 +75,7 @@ export function actionLabel(action: MaterialAction): string {
     case "reopen":
       return "Reopen";
     case "return-to-inbox":
-      return "Return to Inbox";
+      return "Move to Later";
     case "archive":
       return "Archive";
     case "edit":

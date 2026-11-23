@@ -3,18 +3,18 @@ import {
   Tabs as RouterTabs,
   type BottomTabBarProps,
 } from "expo-router/js-tabs";
-import { Tabs as PanelTabs } from "panelui-native";
-import { View } from "react-native";
+import { Text, cn } from "panelui-native";
+import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCSSVariable } from "uniwind";
 
-const destinations = [
+const [capture, plan, later, library, you] = [
   {
     name: "index",
     title: "Capture",
-    androidIcon: "add_circle",
-    iosIcon: "plus.circle",
-    selectedIosIcon: "plus.circle.fill",
+    androidIcon: "add",
+    iosIcon: "plus",
+    selectedIosIcon: "plus",
   },
   {
     name: "dashboard",
@@ -24,18 +24,25 @@ const destinations = [
     selectedIosIcon: "chart.bar.fill",
   },
   {
+    name: "later",
+    title: "Later",
+    androidIcon: "schedule",
+    iosIcon: "clock",
+    selectedIosIcon: "clock.fill",
+  },
+  {
     name: "materials",
-    title: "Materials",
+    title: "Library",
     androidIcon: "library_books",
     iosIcon: "books.vertical",
     selectedIosIcon: "books.vertical.fill",
   },
   {
     name: "settings",
-    title: "Settings",
-    androidIcon: "settings",
-    iosIcon: "gearshape",
-    selectedIosIcon: "gearshape.fill",
+    title: "You",
+    androidIcon: "person",
+    iosIcon: "person.crop.circle",
+    selectedIosIcon: "person.crop.circle.fill",
   },
 ] satisfies {
   name: string;
@@ -45,6 +52,9 @@ const destinations = [
   selectedIosIcon: SFSymbol;
 }[];
 
+const destinations = [capture, plan, later, library, you];
+type Destination = (typeof destinations)[number];
+
 function PrimaryTabBar({
   state,
   emitter,
@@ -52,8 +62,9 @@ function PrimaryTabBar({
   insets,
 }: BottomTabBarProps) {
   const activeRoute = state.routes[state.index];
-  const [selectedTint, inactiveTint] = useCSSVariable([
+  const [captureTint, selectedTint, inactiveTint] = useCSSVariable([
     "--color-primary-foreground",
+    "--color-accent-foreground",
     "--color-muted-foreground",
   ]);
 
@@ -71,54 +82,82 @@ function PrimaryTabBar({
     }
   }
 
+  function renderTab(destination: Destination) {
+    const selected = destination.name === activeRoute.name;
+    const isCapture = destination.name === capture.name;
+    const tint = isCapture
+      ? captureTint
+      : selected
+        ? selectedTint
+        : inactiveTint;
+    const icon = (
+      <SymbolView
+        accessible={false}
+        name={{
+          ios: selected ? destination.selectedIosIcon : destination.iosIcon,
+          android: destination.androidIcon,
+          web: destination.androidIcon,
+        }}
+        size={isCapture ? 28 : 20}
+        tintColor={typeof tint === "string" ? tint : undefined}
+      />
+    );
+
+    return (
+      <Pressable
+        accessibilityLabel={destination.title}
+        accessibilityRole="tab"
+        accessibilityState={{ selected }}
+        className={cn(
+          "items-center justify-center gap-1 active:opacity-75",
+          isCapture ? "min-w-16 px-1" : "min-h-12 flex-1 rounded-xl",
+          selected && !isCapture && "bg-accent",
+        )}
+        onPress={() => selectTab(destination.name)}
+      >
+        {isCapture ? (
+          <View className="size-14 items-center justify-center rounded-full border-2 border-card bg-primary shadow-lg">
+            {icon}
+          </View>
+        ) : (
+          icon
+        )}
+        <Text
+          size="xs"
+          weight={isCapture || selected ? "semibold" : "medium"}
+          className={cn(
+            "text-center text-muted-foreground",
+            (isCapture || selected) && "text-accent-foreground",
+          )}
+        >
+          {destination.title}
+        </Text>
+      </Pressable>
+    );
+  }
+
   return (
     <View
-      className="border-t border-border bg-card"
+      accessibilityRole="tablist"
+      className="flex-row items-end gap-1 bg-background px-2 pb-2"
       style={{
-        paddingBottom: insets.bottom,
-        paddingLeft: insets.left,
-        paddingRight: insets.right,
+        paddingBottom: insets.bottom + 8,
+        paddingHorizontal: Math.max(insets.left, insets.right) + 8,
       }}
     >
-      <PanelTabs
-        className="px-2 py-2"
-        defaultValue="index"
-        value={activeRoute.name}
-        onValueChange={selectTab}
-        variant="pill"
-        size="xs"
-      >
-        <PanelTabs.List>
-          {destinations.map((destination) => {
-            const selected = destination.name === activeRoute.name;
-            const tint = selected ? selectedTint : inactiveTint;
-
-            return (
-              <PanelTabs.Trigger
-                key={destination.name}
-                value={destination.name}
-                className="min-h-12 flex-col gap-0.5"
-                icon={
-                  <SymbolView
-                    accessible={false}
-                    name={{
-                      ios: selected
-                        ? destination.selectedIosIcon
-                        : destination.iosIcon,
-                      android: destination.androidIcon,
-                      web: destination.androidIcon,
-                    }}
-                    size={20}
-                    tintColor={typeof tint === "string" ? tint : undefined}
-                  />
-                }
-              >
-                {destination.title}
-              </PanelTabs.Trigger>
-            );
-          })}
-        </PanelTabs.List>
-      </PanelTabs>
+      <View
+        pointerEvents="none"
+        className="absolute inset-x-0 bottom-0 top-3 border-t border-border bg-card"
+      />
+      <View className="flex-1 flex-row gap-1">
+        {renderTab(plan)}
+        {renderTab(later)}
+      </View>
+      {renderTab(capture)}
+      <View className="flex-1 flex-row gap-1">
+        {renderTab(library)}
+        {renderTab(you)}
+      </View>
     </View>
   );
 }

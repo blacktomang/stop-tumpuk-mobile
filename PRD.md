@@ -16,7 +16,7 @@ stop-tumpuk turns useful articles and standalone videos discovered while browsin
 
 The native app is local-first. It stores the plan, notes, settings, sessions, and history on the device in SQLite. External websites still require network access. The app does not promise offline access to arbitrary third-party pages, and it does not synchronize automatically between devices.
 
-The existing capture-to-finish behavior remains the product baseline: capture a URL or supported native share, choose Reading plan or Inbox, see an estimate and weekly capacity, read next, optionally use a 25-minute focus timer, finish explicitly, and add notes whenever useful.
+The existing capture-to-finish behavior remains the product baseline: capture a URL or supported native share, choose Reading plan or Save for later, see an estimate and weekly capacity, read next, optionally use a 25-minute focus timer, finish explicitly, and add notes whenever useful.
 
 ## 2. Goals and non-goals
 
@@ -36,7 +36,7 @@ The migration does not add accounts, cloud sync, AI inference, scraping services
 ## 3. Primary journey
 
 1. A user pastes an HTTP(S) URL or shares URL/text from another app.
-2. The app stages incoming content in the ordinary capture form. The user chooses Reading plan (selected by default) or Inbox before saving.
+2. The app stages incoming content in the ordinary capture form. The user chooses Reading plan (selected by default) or Save for later before saving.
 3. The app saves a usable local record first, then attempts optional metadata enrichment. Failure never loses the capture.
 4. The user sees one estimated time with a simple label and can edit one estimated-minutes correction.
 5. The dashboard compares known unfinished Reading plan time with one week's weekday/weekend allowance.
@@ -49,13 +49,13 @@ The migration does not add accounts, cloud sync, AI inference, scraping services
 
 ### FR-01 — Learning availability
 
-Offer weekday and weekend minute settings during onboarding and from Settings. The user may skip configuration; after skipping, do not prompt again for three months and show when the next prompt may appear. Zero-minute days are valid. Distinguish unset availability from zero capacity and show no clearance estimate for either. Weekly capacity is `weekday minutes × 5 + weekend minutes × 2`; seven-day scheduling is deferred.
+Offer weekday and weekend minute settings during onboarding and from You. The user may skip configuration; after skipping, do not prompt again for three months and show when the next prompt may appear. Zero-minute days are valid. Distinguish unset availability from zero capacity and show no clearance estimate for either. Weekly capacity is `weekday minutes × 5 + weekend minutes × 2`; seven-day scheduling is deferred.
 
 ### FR-02 — Capture and native share intake
 
 Accept and validate an HTTP(S) URL from the capture form. Accept shared text and shared URLs from supported Android and iOS native integrations, parse URL candidates, and let the user choose when more than one candidate exists. Incoming shares must be staged for the same destination-aware capture form; they must never auto-commit.
 
-Reading plan is the default for every new capture, including a new share. Inbox is an explicit alternative and does not add planned time. Warn on duplicates and preserve the selected destination when the user retries. Save without a title, duration, metadata, availability setup, or installation. If no title is available, use a domain/URL placeholder. URL paste is the guaranteed fallback when native sharing is unavailable.
+Reading plan is the default for every new capture, including a new share. Save for later places a link in Later without adding planned time. Warn on duplicates and preserve the selected destination when the user retries. Save without a title, duration, metadata, availability setup, or installation. If no title is available, use a domain/URL placeholder. URL paste is the guaranteed fallback when native sharing is unavailable.
 
 Native share reception depends on a built development/release binary and platform configuration. Android is the first supported validation target. iOS support is subject to the share-extension and App Group gates; no platform is described as universally supported.
 
@@ -73,7 +73,7 @@ Keep estimates fixed until explicit completion. Timer elapsed time never subtrac
 
 ### FR-05 — Commitment and lifecycle
 
-Saving to Reading plan or moving an Inbox item into it records commitment history. Only queued and in-progress items count toward active planned time and recommendations. Unknown time never blocks commitment and remains visibly unestimated. Users can return an item to Inbox, mark it in progress, finish it explicitly, reopen it, archive it, or delete it. Archive is not completion.
+Saving to Reading plan or moving an item from Later into it records commitment history. Only queued and in-progress items count toward active planned time and recommendations. Unknown time never blocks commitment and remains visibly unestimated. Users can move an item to Later, mark it in progress, finish it explicitly, reopen it, archive it, or delete it. Archive is not completion.
 
 ### FR-06 — Capacity awareness
 
@@ -103,9 +103,9 @@ Deferred. Stable IDs are retained for future manually linked notes; relationship
 
 ### FR-12 — Material management and action hierarchy
 
-Search and filter by status. Edit title, source URL, estimated minutes, type, and video playback speed where applicable. Use Reading plan, Estimated time, Time available this week, Read next, and Finished in user-facing copy.
+The bottom navigation is Plan, Later, Capture, Library, and You. Keep Capture raised and centered. Later shows links saved outside the plan. Library searches all saved materials and filters by status. You holds availability and data transfer. Edit title, source URL, estimated minutes, type, and video playback speed where applicable. Use Reading plan, Estimated time, Time available this week, Read next, and Finished in user-facing copy.
 
-On mobile, show the main action directly and place secondary per-item actions in an accessible Advanced actions control when there are more than three. Preserve Back, Cancel/Close, destructive confirmation, focus/selection feedback, and active timer controls. Inbox primary action is Commit; Reading plan primary action is Open source or Finish according to context. Notes keep New note prominent and use a compact menu for each note's Edit/Delete actions.
+On mobile, show the main action directly and place secondary per-item actions in an accessible Advanced actions control when there are more than three. Preserve Back, Cancel/Close, destructive confirmation, focus/selection feedback, and active timer controls. The primary action for an item saved for later is Add to Reading plan; Reading plan primary action is Open source or Finish according to context. Notes keep New note prominent and use a compact menu for each note's Edit/Delete actions.
 
 ### FR-13 — Local-first SQLite and data transfer
 
@@ -133,7 +133,7 @@ The primary measure remains committed-material completion rate: completed commit
 
 ## 6. Acceptance criteria
 
-1. A user can capture by paste without installation, metadata, duration, or availability setup and choose Reading plan or Inbox in the same form.
+1. A user can capture by paste without installation, metadata, duration, or availability setup and choose Reading plan or Save for later in the same form.
 2. A supported native URL/text share reaches that form without silently saving; unsupported sharing leaves URL paste usable.
 3. Failed enrichment never loses a saved item, and unknown duration never becomes zero.
 4. Manual estimated minutes, including zero, override source duration and survive reload, enrichment, and current-format import.
@@ -157,7 +157,7 @@ Removed from the accepted model are priority levels, learning multipliers, paste
 
 ## 8. Decisions and unresolved choices
 
-The retained product decisions are the Reading plan default with Inbox alternative, weekday/weekend availability, one recommendation, explicit completion, on-demand multiple notes, one estimated-minutes correction, the fixed focus timer, local-first storage, and plain-text notes.
+The retained product decisions are the Reading plan default with Save for later as an alternative, weekday/weekend availability, one recommendation, explicit completion, on-demand multiple notes, one estimated-minutes correction, the fixed focus timer, local-first storage, and plain-text notes.
 
 Working assumption: implement and validate Android first, then complete iOS-specific gates before claiming iOS release readiness.
 

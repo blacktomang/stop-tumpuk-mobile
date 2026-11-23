@@ -228,9 +228,7 @@ export default function ReadingScreen() {
 
   return (
     <>
-      <Stack.Screen
-        options={{ title: "Reading", headerBackTitle: "Materials" }}
-      />
+      <Stack.Screen options={{ title: "Reading", headerBackTitle: "Back" }} />
       <View style={styles.screen}>
         <View style={styles.header}>
           <Text numberOfLines={2} style={styles.title}>
@@ -255,7 +253,7 @@ export default function ReadingScreen() {
 
         {!url ? (
           <StatePanel
-            message="This reading link is missing or is not an HTTP(S) URL. Return to Materials and open a saved source."
+            message="This reading link is missing or is not an HTTP(S) URL. Go back and open a saved source."
             onBack={() => router.back()}
             title="Source unavailable"
           />
@@ -328,7 +326,7 @@ export default function ReadingScreen() {
               pressed && styles.pressed,
             ]}
           >
-            <Text style={styles.secondaryText}>Back to Materials</Text>
+            <Text style={styles.secondaryText}>Back</Text>
           </Pressable>
           <Pressable
             accessibilityRole="button"

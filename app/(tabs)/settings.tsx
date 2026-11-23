@@ -101,11 +101,11 @@ export default function SettingsScreen() {
   return (
     <>
       <ScrollView contentContainerStyle={styles.content} style={styles.screen}>
-        <Text style={styles.eyebrow}>SETTINGS</Text>
-        <Text style={styles.title}>Make the week visible.</Text>
+        <Text accessibilityRole="header" style={styles.title}>
+          You
+        </Text>
         <Text style={styles.intro}>
-          Tell stop-tumpuk how much time you usually have. Leave a field empty
-          when it is not configured.
+          Set your weekly reading time and manage your data.
         </Text>
         <View style={styles.card}>
           <Field
@@ -240,12 +240,6 @@ function availabilitySummary(settings: Settings): string {
 const styles = StyleSheet.create({
   screen: { backgroundColor: colors.paper },
   content: { gap: 18, padding: 24, paddingTop: 38 },
-  eyebrow: {
-    color: colors.accent,
-    fontSize: 12,
-    fontWeight: "800",
-    letterSpacing: 2,
-  },
   title: {
     color: colors.ink,
     fontSize: 34,

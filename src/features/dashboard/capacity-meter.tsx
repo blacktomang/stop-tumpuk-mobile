@@ -1,87 +1,41 @@
-import { StyleSheet, Text, View } from "react-native";
+import { cn } from "panelui-native";
+import { View } from "react-native";
 
-const colors = {
-  ink: "#17211B",
-  muted: "#647067",
-  line: "#DDE4DC",
-  accent: "#2E6B4D",
-  warning: "#A66A12",
-  danger: "#A53D32",
+const fillClasses = {
+  neutral: "bg-primary",
+  positive: "bg-primary",
+  warning: "bg-warning-foreground",
+  danger: "bg-destructive-foreground",
 };
 
 export function CapacityMeter({
-  label,
   value,
   valueText,
   tone,
 }: {
-  label: string;
   value: number | null;
   valueText: string;
-  tone: "neutral" | "positive" | "warning" | "danger";
+  tone: keyof typeof fillClasses;
 }) {
-  const fillColor =
-    tone === "danger"
-      ? colors.danger
-      : tone === "warning"
-        ? colors.warning
-        : colors.accent;
-  const accessibilityValue =
-    value === null
-      ? { text: valueText }
-      : { min: 0, max: 100, now: value, text: valueText };
+  if (value === null) return null;
 
+  const boundedValue = Math.max(0, Math.min(100, value));
   return (
     <View
-      accessibilityHint="This shows planned time against weekly capacity, not completion progress."
-      accessibilityLabel={label}
+      accessibilityLabel="Planned time against weekly capacity"
       accessibilityRole="progressbar"
-      accessibilityValue={accessibilityValue}
-      style={styles.wrapper}
+      accessibilityValue={{
+        min: 0,
+        max: 100,
+        now: boundedValue,
+        text: valueText,
+      }}
+      className="h-3 overflow-hidden rounded-full bg-muted"
     >
-      <View style={styles.track}>
-        {value !== null ? (
-          <View
-            style={[
-              styles.fill,
-              {
-                backgroundColor: fillColor,
-                width: `${Math.max(0, Math.min(100, value))}%`,
-              },
-            ]}
-          />
-        ) : null}
-      </View>
-      <View style={styles.legend}>
-        <Text style={styles.caption}>PLANNED TIME / WEEKLY CAPACITY</Text>
-        <Text style={[styles.value, tone === "danger" && styles.danger]}>
-          {valueText}
-        </Text>
-      </View>
+      <View
+        className={cn("h-full rounded-full", fillClasses[tone])}
+        style={{ width: `${boundedValue}%` }}
+      />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: { gap: 10 },
-  track: {
-    backgroundColor: colors.line,
-    borderRadius: 8,
-    height: 14,
-    overflow: "hidden",
-  },
-  fill: { borderRadius: 8, height: "100%" },
-  legend: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  caption: {
-    color: colors.muted,
-    fontSize: 10,
-    fontWeight: "800",
-    letterSpacing: 1.1,
-  },
-  value: { color: colors.ink, fontSize: 13, fontWeight: "700" },
-  danger: { color: colors.danger },
-});

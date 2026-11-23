@@ -3,7 +3,7 @@ import type { NativeRepositories } from "../storage/sqlite/repositories";
 import type { Material, MaterialType } from "../types";
 
 export type MaterialListFilter =
-  "inbox" | "reading-plan" | "in-progress" | "finished" | "archived";
+  "all" | "inbox" | "reading-plan" | "in-progress" | "finished" | "archived";
 
 export interface MaterialEdit {
   title: string;
@@ -23,6 +23,8 @@ export function matchesMaterialFilter(
   filter: MaterialListFilter,
 ): boolean {
   switch (filter) {
+    case "all":
+      return true;
     case "reading-plan":
       return material.status === "queued";
     case "finished":

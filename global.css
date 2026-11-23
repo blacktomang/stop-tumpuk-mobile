@@ -5,3 +5,31 @@
 @source "./app";
 @source "./src";
 @source "./node_modules/panelui-native/src";
+
+@layer theme {
+  :root {
+    @variant light {
+      --color-background: #faf8f3;
+      --color-card: #fffcf7;
+      --color-foreground: #1a251f;
+      --color-card-foreground: #1a251f;
+      --color-muted: #e7ebe3;
+      --color-muted-foreground: #555e56;
+      --color-primary: #14543a;
+      --color-primary-foreground: #ffffff;
+      --color-accent: #dce9da;
+      --color-accent-foreground: #15432f;
+      --color-border: #c4cec2;
+      --color-input: #849587;
+      --color-ring: #14543a;
+    }
+
+    @variant dark {
+      --color-primary: #a8d9b7;
+      --color-primary-foreground: #13281c;
+      --color-accent: #233e2d;
+      --color-accent-foreground: #c3e7ca;
+      --color-ring: #a8d9b7;
+    }
+  }
+}
