@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { PanelUIProvider } from "panelui-native";
+import { LaunchSplash } from "../src/components/launch-splash";
 import "../global.css";
 
 export default function RootLayout() {
@@ -14,6 +15,7 @@ export default function RootLayout() {
           options={{ presentation: "modal" }}
         />
       </Stack>
+      <LaunchSplash />
     </PanelUIProvider>
   );
 }
