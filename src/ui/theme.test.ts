@@ -12,6 +12,7 @@ vi.mock("expo-router", () => ({
 }));
 vi.mock("expo-status-bar", () => ({ StatusBar: "StatusBar" }));
 vi.mock("panelui-native", () => ({ PanelUIProvider: "PanelUIProvider" }));
+vi.mock("../components/launch-splash", () => ({ LaunchSplash: "LaunchSplash" }));
 vi.mock("react", async (importOriginal) => ({
   ...(await importOriginal<typeof import("react")>()),
   useContext: vi.fn(),

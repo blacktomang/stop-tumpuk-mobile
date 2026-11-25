@@ -239,7 +239,7 @@ produce an evidence record.
 - [ ] **FR references:** FR-01 through FR-15; acceptance criteria 1–14.
 - **Dependencies:** NATIVE-070, NATIVE-060.
 - **Deliverable:** Android validation record covering fresh install, restart persistence, offline local data, import/export, capture destinations, capacity/recommendation, WebView matrix/fallback, notes, timer interruptions, and native URL/text sharing.
-- **Verification:** Android emulator checks followed by a configured physical Android device with exact OS, browser/source-app, Expo/build, and network conditions recorded. Switch device appearance while the app is open and verify tabs, forms, modals, and reader controls in both modes.
+- **Verification:** Android emulator checks followed by a configured physical Android device with exact OS, browser/source-app, Expo/build, and network conditions recorded. Switch device appearance while the app is open and verify tabs, forms, modals, and reader controls in both modes. Include a cold launch with and without Reduce Motion and a cold launch through a shared URL (FR-15).
 - **Complete when:** All Android release-gate scenarios have evidence or a documented limitation, and no browser emulation is presented as physical share evidence.
 
 ### NATIVE-072 — Validate iOS simulator, physical device, and store gates
@@ -247,7 +247,7 @@ produce an evidence record.
 - [ ] **FR references:** FR-08, FR-09, FR-10, FR-13, FR-15.
 - **Dependencies:** NATIVE-061, NATIVE-071.
 - **Deliverable:** iOS simulator and physical-device record for layout/navigation, SQLite persistence, import/export, WebView fallback, AppState/timer recovery, share extension/App Group, signing/provisioning, privacy strings, and release configuration.
-- **Verification:** Simulator tests, physical-device tests, archive/install check, and App Store/TestFlight readiness review with exact tool/device versions recorded. Switch device appearance while the app is open and verify tabs, forms, modals, and reader controls in both modes.
+- **Verification:** Simulator tests, physical-device tests, archive/install check, and App Store/TestFlight readiness review with exact tool/device versions recorded. Switch device appearance while the app is open and verify tabs, forms, modals, and reader controls in both modes. Include a cold launch with and without Reduce Motion (FR-15).
 - **Complete when:** iOS-specific gates pass or are explicitly marked as release blockers; no iOS share support is claimed without device evidence.
 
 ### NATIVE-073 — Establish the first native release baseline

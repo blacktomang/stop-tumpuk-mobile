@@ -11,6 +11,7 @@
 | App runtime | Expo SDK 58 with React Native 0.88 and React 19.3 | Official SDK 58 reference maps these versions; use `expo install` to resolve SDK-managed packages. |
 | Language | Strict TypeScript | Domain, repositories, transfer validation, and platform adapters share explicit types. |
 | Navigation | Expo Router `~58.0.30` | File-based native routes and deep-link/native-intent handling. |
+| Launch screen | `expo-splash-screen ~58.0.14`, React Native Animated, and `react-native-svg` | The Expo config plugin defines the native first frame. The root layout owns the short branded transition (FR-15). |
 | UI and styling | PanelUI Native `^1.4.0` with Uniwind `^1.13.2` and Tailwind CSS `^4.3.3` | PanelUI supplies semantic native components, themes, overlay primitives, and the root provider. Uniwind compiles the Tailwind classes it and app layout use. NativeWind is not part of the native target. |
 | System appearance | `expo-system-ui ~58.0.7` | Applies Expo's automatic appearance setting on Android. Uniwind supplies the active system palette to app screens and Expo Router. |
 | Persistence | `expo-sqlite ~58.0.15` behind repositories | SQLite is persisted across app restarts; schema and migrations stay behind an application boundary. |

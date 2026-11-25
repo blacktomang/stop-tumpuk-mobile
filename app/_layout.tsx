@@ -3,6 +3,7 @@ import { StatusBar } from "expo-status-bar";
 import { PanelUIProvider } from "panelui-native";
 import { useMemo } from "react";
 import { useUniwind } from "uniwind";
+import { LaunchSplash } from "../src/components/launch-splash";
 import { AppColorsContext, useSystemColors } from "../src/ui/theme";
 import "../global.css";
 
@@ -40,6 +41,7 @@ export default function RootLayout() {
           </Stack>
         </ThemeProvider>
       </AppColorsContext>
+      <LaunchSplash />
     </PanelUIProvider>
   );
 }

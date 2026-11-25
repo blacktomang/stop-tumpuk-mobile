@@ -125,6 +125,8 @@ Use Expo Router for native navigation and deep-link handling. Use the platform s
 
 App screens, navigation, and controls follow the device's light or dark appearance. The appearance of a source loaded in the reader depends on the source website.
 
+On native cold launch, show the stop-tumpuk link-and-book mark. Once the app layout is ready, the link gently moves and settles into the book before the splash fades. With Reduce Motion enabled, show the static mark until the app layout is ready.
+
 Android is the initial implementation and validation platform. iOS release requires a simulator check, physical-device persistence and WebView checks, share-extension/App Group verification, background/foreground timer checks, signing/provisioning, privacy metadata, and App Store review readiness. The exact minimum OS versions, representative source-site matrix, and final share MIME/payload policy remain release decisions.
 
 ## 5. Success measures
