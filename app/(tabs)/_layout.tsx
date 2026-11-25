@@ -3,8 +3,7 @@ import {
   Tabs as RouterTabs,
   type BottomTabBarProps,
 } from "expo-router/js-tabs";
-import { Tabs as PanelTabs } from "panelui-native";
-import { View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCSSVariable } from "uniwind";
 
@@ -80,45 +79,46 @@ function PrimaryTabBar({
         paddingRight: insets.right,
       }}
     >
-      <PanelTabs
-        className="px-2 py-2"
-        defaultValue="index"
-        value={activeRoute.name}
-        onValueChange={selectTab}
-        variant="pill"
-        size="xs"
-      >
-        <PanelTabs.List>
-          {destinations.map((destination) => {
-            const selected = destination.name === activeRoute.name;
-            const tint = selected ? selectedTint : inactiveTint;
+      <View accessibilityRole="tablist" className="flex-row px-2 py-2">
+        {destinations.map((destination) => {
+          const selected = destination.name === activeRoute.name;
+          const tint = selected ? selectedTint : inactiveTint;
 
-            return (
-              <PanelTabs.Trigger
-                key={destination.name}
-                value={destination.name}
-                className="min-h-12 flex-col gap-0.5"
-                icon={
-                  <SymbolView
-                    accessible={false}
-                    name={{
-                      ios: selected
-                        ? destination.selectedIosIcon
-                        : destination.iosIcon,
-                      android: destination.androidIcon,
-                      web: destination.androidIcon,
-                    }}
-                    size={20}
-                    tintColor={typeof tint === "string" ? tint : undefined}
-                  />
-                }
+          return (
+            <Pressable
+              key={destination.name}
+              accessibilityRole="tab"
+              accessibilityLabel={destination.title}
+              accessibilityState={{ selected }}
+              className="min-h-14 min-w-0 flex-1 items-center justify-center gap-0.5 px-1 py-1"
+              onPress={() => selectTab(destination.name)}
+              style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            >
+              <View
+                className={`h-8 w-14 max-w-full items-center justify-center rounded-full ${selected ? "bg-primary" : "bg-transparent"}`}
+              >
+                <SymbolView
+                  accessible={false}
+                  name={{
+                    ios: selected
+                      ? destination.selectedIosIcon
+                      : destination.iosIcon,
+                    android: destination.androidIcon,
+                    web: destination.androidIcon,
+                  }}
+                  size={20}
+                  tintColor={typeof tint === "string" ? tint : undefined}
+                />
+              </View>
+              <Text
+                className={`text-center text-xs ${selected ? "text-primary" : "text-muted-foreground"}`}
               >
                 {destination.title}
-              </PanelTabs.Trigger>
-            );
-          })}
-        </PanelTabs.List>
-      </PanelTabs>
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
