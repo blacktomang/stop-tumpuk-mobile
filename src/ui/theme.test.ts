@@ -57,7 +57,7 @@ describe("system appearance", () => {
         return names.map((name) => values[name]);
       });
 
-      const paletteProvider = RootLayout().props.children;
+      const [paletteProvider] = RootLayout().props.children;
       const navigation = paletteProvider.props.children;
       vi.mocked(useContext).mockReturnValue(paletteProvider.props.value);
 
