@@ -6,11 +6,11 @@ import {
   Linking,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
 import { WebView } from "react-native-webview";
+import { createThemedStyles } from "../src/ui/theme";
 
 import {
   decideWebViewNavigation,
@@ -24,18 +24,8 @@ import {
   type ProbeEvidence,
 } from "../src/features/reading/webview-feasibility";
 
-const colors = {
-  ink: "#17211B",
-  muted: "#647067",
-  paper: "#F6F7F2",
-  panel: "#FFFFFF",
-  line: "#DDE4DC",
-  accent: "#2E6B4D",
-  accentSoft: "#E5F0E7",
-  danger: "#A53D32",
-};
-
 export default function WebViewProbeScreen() {
+  const { colors, styles } = useStyles();
   const [selectedId, setSelectedId] = useState(probeSources[0].id);
   const [reloadToken, setReloadToken] = useState(0);
   const [evidenceBySource, setEvidenceBySource] = useState<
@@ -220,7 +210,7 @@ export default function WebViewProbeScreen() {
               originWhitelist={["http://*", "https://*"]}
               renderLoading={() => (
                 <View style={styles.loading}>
-                  <ActivityIndicator color={colors.accent} />
+                  <ActivityIndicator color={colors.primary} />
                   <Text style={styles.muted}>Loading remote source…</Text>
                 </View>
               )}
@@ -262,6 +252,7 @@ export default function WebViewProbeScreen() {
 }
 
 function Evidence({ label, value }: { label: string; value: string }) {
+  const { styles } = useStyles();
   return (
     <View style={styles.evidence}>
       <Text style={styles.evidenceLabel}>{label}</Text>
@@ -281,6 +272,7 @@ function ProbeButton({
   onPress: () => void;
   secondary?: boolean;
 }) {
+  const { styles } = useStyles();
   return (
     <Pressable
       accessibilityRole="button"
@@ -307,52 +299,52 @@ function statusLabel(status: ProbeEvidence["status"]): string {
     : status[0].toUpperCase() + status.slice(1);
 }
 
-const styles = StyleSheet.create({
-  screen: { backgroundColor: colors.paper },
+const useStyles = createThemedStyles((colors) => ({
+  screen: { backgroundColor: colors.background },
   content: { padding: 20, gap: 16 },
   eyebrow: {
-    color: colors.accent,
+    color: colors.primary,
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 1.4,
   },
   title: {
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 30,
     fontWeight: "800",
     letterSpacing: -0.8,
   },
-  intro: { color: colors.muted, fontSize: 16, lineHeight: 23 },
+  intro: { color: colors.mutedForeground, fontSize: 16, lineHeight: 23 },
   matrix: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 18,
     borderWidth: 1,
     overflow: "hidden",
   },
   sectionLabel: {
-    color: colors.muted,
+    color: colors.mutedForeground,
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 1.2,
   },
   sourceRow: {
     alignItems: "center",
-    borderTopColor: colors.line,
+    borderTopColor: colors.border,
     borderTopWidth: 1,
     flexDirection: "row",
     gap: 12,
     justifyContent: "space-between",
     padding: 15,
   },
-  sourceRowSelected: { backgroundColor: colors.accentSoft },
+  sourceRowSelected: { backgroundColor: colors.accent },
   sourceCopy: { flex: 1, gap: 4 },
-  sourceLabel: { color: colors.ink, fontSize: 15, fontWeight: "700" },
-  sourceUrl: { color: colors.muted, fontSize: 12 },
-  status: { color: colors.accent, fontSize: 11, fontWeight: "700" },
+  sourceLabel: { color: colors.foreground, fontSize: 15, fontWeight: "700" },
+  sourceUrl: { color: colors.mutedForeground, fontSize: 12 },
+  status: { color: colors.primary, fontSize: 11, fontWeight: "700" },
   card: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 18,
     borderWidth: 1,
     gap: 12,
@@ -364,81 +356,97 @@ const styles = StyleSheet.create({
     gap: 12,
     justifyContent: "space-between",
   },
-  cardTitle: { color: colors.ink, fontSize: 21, fontWeight: "800" },
+  cardTitle: { color: colors.foreground, fontSize: 21, fontWeight: "800" },
   policy: {
-    color: colors.accent,
+    color: colors.primary,
     fontSize: 11,
     fontWeight: "800",
     textAlign: "right",
   },
-  expected: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  expected: { color: colors.mutedForeground, fontSize: 13, lineHeight: 19 },
   progressTrack: {
-    backgroundColor: colors.line,
+    backgroundColor: colors.border,
     borderRadius: 4,
     height: 6,
     overflow: "hidden",
   },
-  progress: { backgroundColor: colors.accent, height: 6 },
-  progressText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
+  progress: { backgroundColor: colors.primary, height: 6 },
+  progressText: {
+    color: colors.mutedForeground,
+    fontSize: 12,
+    fontWeight: "700",
+  },
   webViewFrame: {
-    backgroundColor: "#E9EDE8",
-    borderColor: colors.line,
+    backgroundColor: colors.background,
+    borderColor: colors.border,
     borderRadius: 12,
     height: 360,
     overflow: "hidden",
   },
-  webView: { flex: 1 },
+  webView: { backgroundColor: colors.card, flex: 1 },
   loading: {
     alignItems: "center",
-    backgroundColor: colors.paper,
+    backgroundColor: colors.background,
     flex: 1,
     gap: 10,
     justifyContent: "center",
   },
-  muted: { color: colors.muted, fontSize: 13 },
+  muted: { color: colors.mutedForeground, fontSize: 13 },
   errorBox: {
-    backgroundColor: "#FBEDEA",
+    backgroundColor: colors.destructiveSoft,
     borderRadius: 12,
     gap: 8,
     padding: 12,
   },
-  errorTitle: { color: colors.danger, fontSize: 15, fontWeight: "800" },
-  errorText: { color: colors.ink, fontSize: 13 },
+  errorTitle: {
+    color: colors.destructiveForeground,
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  errorText: { color: colors.foreground, fontSize: 13 },
   actions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   primaryButton: {
     alignItems: "center",
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
     borderRadius: 10,
     minHeight: 44,
     justifyContent: "center",
     paddingHorizontal: 14,
   },
-  primaryButtonText: { color: "#FFFFFF", fontSize: 13, fontWeight: "800" },
+  primaryButtonText: {
+    color: colors.primaryForeground,
+    fontSize: 13,
+    fontWeight: "800",
+  },
   secondaryButton: {
     alignItems: "center",
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 10,
     borderWidth: 1,
     minHeight: 44,
     justifyContent: "center",
     paddingHorizontal: 14,
   },
-  secondaryButtonText: { color: colors.ink, fontSize: 13, fontWeight: "800" },
+  secondaryButtonText: {
+    color: colors.foreground,
+    fontSize: 13,
+    fontWeight: "800",
+  },
   pressed: { opacity: 0.72 },
-  message: { color: colors.ink, fontSize: 13, lineHeight: 19 },
+  message: { color: colors.foreground, fontSize: 13, lineHeight: 19 },
   evidenceGrid: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   evidence: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.background,
     borderRadius: 10,
     gap: 3,
     minWidth: "46%",
     padding: 10,
   },
   evidenceLabel: {
-    color: colors.muted,
+    color: colors.mutedForeground,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 0.7,
   },
-  evidenceValue: { color: colors.ink, fontSize: 12 },
-});
+  evidenceValue: { color: colors.foreground, fontSize: 12 },
+}));

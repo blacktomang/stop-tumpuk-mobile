@@ -5,10 +5,10 @@ import {
   TextInput,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
+import { createThemedStyles } from "../../src/ui/theme";
 
 import { createPlanningService } from "../../src/application/planning-service";
 import type { CapacityViewModel, RecommendationResult } from "../../src/domain";
@@ -29,18 +29,8 @@ import {
 } from "../../src/features/dashboard/recommendation-presenter";
 import { openNativeRepositories } from "../../src/storage/sqlite/expo-sqlite-adapter";
 
-const colors = {
-  ink: "#17211B",
-  muted: "#647067",
-  paper: "#F6F7F2",
-  panel: "#FFFFFF",
-  line: "#DDE4DC",
-  accent: "#2E6B4D",
-  accentSoft: "#E5F0E7",
-  danger: "#A53D32",
-};
-
 export default function DashboardScreen() {
+  const { colors, styles } = useStyles();
   const [capacity, setCapacity] = useState<CapacityViewModel | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [recommendation, setRecommendation] =
@@ -133,7 +123,7 @@ export default function DashboardScreen() {
 
         {!capacity && !error ? (
           <View style={styles.loading}>
-            <ActivityIndicator color={colors.accent} />
+            <ActivityIndicator color={colors.primary} />
             <Text style={styles.muted}>Reading your local plan…</Text>
           </View>
         ) : null}
@@ -229,7 +219,7 @@ export default function DashboardScreen() {
                   keyboardType="number-pad"
                   onChangeText={setCustomMinutes}
                   placeholder="Custom"
-                  placeholderTextColor={colors.muted}
+                  placeholderTextColor={colors.mutedForeground}
                   style={styles.customInput}
                   value={customMinutes}
                 />
@@ -343,6 +333,7 @@ export default function DashboardScreen() {
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
+  const { styles } = useStyles();
   return (
     <View style={styles.stat}>
       <Text style={styles.statLabel}>{label}</Text>
@@ -351,43 +342,43 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { backgroundColor: colors.paper },
+const useStyles = createThemedStyles((colors) => ({
+  screen: { backgroundColor: colors.background },
   content: { gap: 18, padding: 24, paddingTop: 38 },
   eyebrow: {
-    color: colors.accent,
+    color: colors.primary,
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 1.6,
   },
   title: {
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 34,
     fontWeight: "700",
     letterSpacing: -1,
     lineHeight: 40,
   },
-  intro: { color: colors.muted, fontSize: 16, lineHeight: 24 },
+  intro: { color: colors.mutedForeground, fontSize: 16, lineHeight: 24 },
   card: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 18,
     borderWidth: 1,
     gap: 16,
     padding: 18,
   },
   message: {
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 23,
     fontWeight: "700",
     letterSpacing: -0.4,
     lineHeight: 29,
   },
-  detail: { color: colors.muted, fontSize: 14, lineHeight: 20 },
+  detail: { color: colors.mutedForeground, fontSize: 14, lineHeight: 20 },
   stats: { flexDirection: "row", gap: 10 },
   stat: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 12,
     borderWidth: 1,
     flex: 1,
@@ -396,38 +387,38 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   statLabel: {
-    color: colors.muted,
+    color: colors.mutedForeground,
     fontSize: 9,
     fontWeight: "800",
     letterSpacing: 0.8,
   },
-  statValue: { color: colors.ink, fontSize: 17, fontWeight: "700" },
+  statValue: { color: colors.foreground, fontSize: 17, fontWeight: "700" },
   projection: {
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.accent,
     borderRadius: 14,
     gap: 7,
     padding: 16,
   },
   projectionLabel: {
-    color: colors.accent,
+    color: colors.primary,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1.1,
   },
-  projectionText: { color: colors.ink, fontSize: 15, lineHeight: 22 },
+  projectionText: { color: colors.foreground, fontSize: 15, lineHeight: 22 },
   secondary: {
     alignItems: "center",
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 10,
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 50,
   },
-  secondaryText: { color: colors.accent, fontSize: 15, fontWeight: "700" },
+  secondaryText: { color: colors.primary, fontSize: 15, fontWeight: "700" },
   recommendation: {
     alignItems: "center",
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 14,
     borderStyle: "dashed",
     borderWidth: 1,
@@ -435,21 +426,25 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   recommendationLabel: {
-    color: colors.muted,
+    color: colors.mutedForeground,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1.1,
   },
-  recommendationText: { color: colors.ink, fontSize: 14, lineHeight: 20 },
+  recommendationText: {
+    color: colors.foreground,
+    fontSize: 14,
+    lineHeight: 20,
+  },
   recommendationTitle: {
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 17,
     fontWeight: "700",
     lineHeight: 22,
   },
   shortcuts: { flexDirection: "row", gap: 8 },
   shortcut: {
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 9,
     borderWidth: 1,
     flex: 1,
@@ -458,45 +453,45 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   shortcutSelected: {
-    backgroundColor: colors.accent,
-    borderColor: colors.accent,
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
-  shortcutText: { color: colors.accent, fontSize: 14, fontWeight: "700" },
-  shortcutTextSelected: { color: colors.panel },
+  shortcutText: { color: colors.primary, fontSize: 14, fontWeight: "700" },
+  shortcutTextSelected: { color: colors.card },
   customRow: { flexDirection: "row", gap: 8 },
   customInput: {
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 9,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.foreground,
     flex: 1,
     minHeight: 44,
     paddingHorizontal: 12,
   },
   customButton: {
     alignItems: "center",
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.accent,
     borderRadius: 9,
     justifyContent: "center",
     minHeight: 44,
     paddingHorizontal: 14,
   },
-  customButtonText: { color: colors.accent, fontSize: 14, fontWeight: "700" },
+  customButtonText: { color: colors.primary, fontSize: 14, fontWeight: "700" },
   selection: {
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.accent,
     borderRadius: 10,
     gap: 5,
     padding: 12,
   },
   selectionLabel: {
-    color: colors.accent,
+    color: colors.primary,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1,
   },
   partialButton: {
     alignSelf: "flex-start",
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 8,
     borderWidth: 1,
     minHeight: 42,
@@ -505,28 +500,28 @@ const styles = StyleSheet.create({
   },
   manualButton: {
     alignItems: "center",
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 9,
     borderWidth: 1,
     minHeight: 46,
     justifyContent: "center",
   },
   manualList: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border,
     borderTopWidth: 1,
     gap: 8,
     paddingTop: 8,
   },
   manualItem: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.background,
     borderRadius: 8,
     gap: 3,
     padding: 10,
   },
-  manualTitle: { color: colors.ink, fontSize: 14, fontWeight: "700" },
-  manualEstimate: { color: colors.muted, fontSize: 13 },
+  manualTitle: { color: colors.foreground, fontSize: 14, fontWeight: "700" },
+  manualEstimate: { color: colors.mutedForeground, fontSize: 13 },
   loading: { alignItems: "center", gap: 10, padding: 28 },
-  muted: { color: colors.muted, fontSize: 14 },
-  error: { color: colors.danger, fontSize: 14, lineHeight: 20 },
+  muted: { color: colors.mutedForeground, fontSize: 14 },
+  error: { color: colors.destructiveForeground, fontSize: 14, lineHeight: 20 },
   pressed: { opacity: 0.84, transform: [{ translateY: 1 }] },
-});
+}));

@@ -12,6 +12,7 @@
 | Language | Strict TypeScript | Domain, repositories, transfer validation, and platform adapters share explicit types. |
 | Navigation | Expo Router `~58.0.30` | File-based native routes and deep-link/native-intent handling. |
 | UI and styling | PanelUI Native `^1.4.0` with Uniwind `^1.13.2` and Tailwind CSS `^4.3.3` | PanelUI supplies semantic native components, themes, overlay primitives, and the root provider. Uniwind compiles the Tailwind classes it and app layout use. NativeWind is not part of the native target. |
+| System appearance | `expo-system-ui ~58.0.7` | Applies Expo's automatic appearance setting on Android. Uniwind supplies the active system palette to app screens and Expo Router. |
 | Persistence | `expo-sqlite ~58.0.15` behind repositories | SQLite is persisted across app restarts; schema and migrations stay behind an application boundary. |
 | Reading | `react-native-webview 14.0.1` | In-app source reading on Android/iOS, with explicit loading/error/navigation and external-browser fallback. |
 | Native inbound sharing | `expo-sharing ~58.0.22` plus Expo Router native-intent/configuration | Android intent filters and iOS share-extension/App Group behavior require a configured native build; receiving is distinct from outbound sharing. |

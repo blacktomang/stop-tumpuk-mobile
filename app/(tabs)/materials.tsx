@@ -7,11 +7,11 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { createThemedStyles } from "../../src/ui/theme";
 
 import { createLifecycleService } from "../../src/application/lifecycle-service";
 import { createNotesService } from "../../src/application/notes-service";
@@ -33,18 +33,8 @@ import { openNativeRepositories } from "../../src/storage/sqlite/expo-sqlite-ada
 import type { NativeRepositories } from "../../src/storage/sqlite/repositories";
 import type { Material, MaterialType, Note } from "../../src/types";
 
-const colors = {
-  ink: "#17211B",
-  muted: "#647067",
-  paper: "#F6F7F2",
-  panel: "#FFFFFF",
-  line: "#DDE4DC",
-  accent: "#2E6B4D",
-  accentSoft: "#E5F0E7",
-  danger: "#A53D32",
-};
-
 export default function MaterialsScreen() {
+  const { colors, styles } = useStyles();
   const [repositories, setRepositories] = useState<NativeRepositories | null>(
     null,
   );
@@ -255,7 +245,7 @@ export default function MaterialsScreen() {
           autoCorrect={false}
           onChangeText={setQuery}
           placeholder="Search title, domain, or URL"
-          placeholderTextColor="#9AA59B"
+          placeholderTextColor={colors.mutedForeground}
           style={styles.search}
           value={query}
         />
@@ -263,7 +253,7 @@ export default function MaterialsScreen() {
         {message ? <Text style={styles.message}>{message}</Text> : null}
         {loading ? (
           <View style={styles.loading}>
-            <ActivityIndicator color={colors.accent} />
+            <ActivityIndicator color={colors.primary} />
             <Text style={styles.muted}>Reading your local materials…</Text>
           </View>
         ) : visibleMaterials.length === 0 ? (
@@ -318,6 +308,7 @@ function MaterialCard({
   onAction: (action: MaterialAction) => void;
   onToggleAdvanced: () => void;
 }) {
+  const { styles } = useStyles();
   const actions = actionGroupForStatus(material.status);
   return (
     <View style={styles.card}>
@@ -390,6 +381,7 @@ function NotesPanel({
   material: Material;
   repositories: NativeRepositories;
 }) {
+  const { colors, styles } = useStyles();
   const [notes, setNotes] = useState<Note[]>([]);
   const [query, setQuery] = useState("");
   const [editing, setEditing] = useState<Note | null>(null);
@@ -500,7 +492,7 @@ function NotesPanel({
         autoCapitalize="sentences"
         onChangeText={setQuery}
         placeholder="Search notes"
-        placeholderTextColor="#9AA59B"
+        placeholderTextColor={colors.mutedForeground}
         style={styles.noteSearch}
         value={query}
       />
@@ -575,7 +567,7 @@ function NotesPanel({
             multiline
             onChangeText={setDraft}
             placeholder="Write a plain-text note"
-            placeholderTextColor="#9AA59B"
+            placeholderTextColor={colors.mutedForeground}
             style={styles.noteEditor}
             textAlignVertical="top"
             value={draft}
@@ -611,6 +603,7 @@ function EditMaterialModal({
   onClose: () => void;
   onSave: (draft: MaterialEdit) => Promise<void>;
 }) {
+  const { colors, styles } = useStyles();
   const [title, setTitle] = useState("");
   const [url, setUrl] = useState("");
   const [minutes, setMinutes] = useState("");
@@ -724,7 +717,7 @@ function EditMaterialModal({
           ]}
         >
           {saving ? (
-            <ActivityIndicator color="#FFFFFF" />
+            <ActivityIndicator color={colors.primaryForeground} />
           ) : (
             <Text style={styles.primaryText}>Save changes</Text>
           )}
@@ -754,6 +747,7 @@ function Field({
   keyboardType?: "url" | "decimal-pad" | "default";
   placeholder?: string;
 }) {
+  const { colors, styles } = useStyles();
   return (
     <View style={styles.field}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -764,7 +758,7 @@ function Field({
         keyboardType={keyboardType}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#9AA59B"
+        placeholderTextColor={colors.mutedForeground}
         style={styles.input}
         value={value}
       />
@@ -781,6 +775,7 @@ function Choice({
   label: string;
   onPress: () => void;
 }) {
+  const { styles } = useStyles();
   return (
     <Pressable
       accessibilityRole="radio"
@@ -813,8 +808,8 @@ function emptyDescription(filter: MaterialListFilter): string {
     : "Move a material here from Advanced actions when it is ready.";
 }
 
-const styles = StyleSheet.create({
-  screen: { backgroundColor: colors.paper },
+const useStyles = createThemedStyles((colors) => ({
+  screen: { backgroundColor: colors.background },
   content: { gap: 18, padding: 24, paddingTop: 38 },
   headerRow: {
     alignItems: "flex-start",
@@ -824,54 +819,54 @@ const styles = StyleSheet.create({
   },
   headerCopy: { flex: 1, gap: 10 },
   eyebrow: {
-    color: colors.accent,
+    color: colors.primary,
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 1.6,
   },
   title: {
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 34,
     fontWeight: "700",
     letterSpacing: -1,
     lineHeight: 40,
   },
-  intro: { color: colors.muted, fontSize: 16, lineHeight: 24 },
+  intro: { color: colors.mutedForeground, fontSize: 16, lineHeight: 24 },
   captureButton: {
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 10,
     borderWidth: 1,
     minHeight: 44,
     justifyContent: "center",
     paddingHorizontal: 13,
   },
-  captureButtonText: { color: colors.accent, fontSize: 14, fontWeight: "700" },
+  captureButtonText: { color: colors.primary, fontSize: 14, fontWeight: "700" },
   tabs: { gap: 8, paddingVertical: 2 },
   tab: {
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 9,
     borderWidth: 1,
     minHeight: 42,
     justifyContent: "center",
     paddingHorizontal: 13,
   },
-  tabSelected: { backgroundColor: colors.accent, borderColor: colors.accent },
-  tabText: { color: colors.accent, fontSize: 14, fontWeight: "700" },
-  tabTextSelected: { color: colors.panel },
+  tabSelected: { backgroundColor: colors.primary, borderColor: colors.primary },
+  tabText: { color: colors.primary, fontSize: 14, fontWeight: "700" },
+  tabTextSelected: { color: colors.card },
   search: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 10,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 15,
     minHeight: 50,
     paddingHorizontal: 14,
   },
   list: { gap: 12 },
   card: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 16,
     borderWidth: 1,
     gap: 10,
@@ -883,22 +878,22 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   type: {
-    color: colors.accent,
+    color: colors.primary,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1.1,
     textTransform: "uppercase",
   },
-  estimate: { color: colors.muted, fontSize: 13 },
+  estimate: { color: colors.mutedForeground, fontSize: 13 },
   cardTitle: {
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 18,
     fontWeight: "700",
     lineHeight: 24,
   },
-  domain: { color: colors.muted, fontSize: 13 },
+  domain: { color: colors.mutedForeground, fontSize: 13 },
   notesPanel: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.background,
     borderRadius: 11,
     gap: 8,
     padding: 10,
@@ -908,34 +903,34 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  notesTitle: { color: colors.ink, fontSize: 15, fontWeight: "800" },
+  notesTitle: { color: colors.foreground, fontSize: 15, fontWeight: "800" },
   newNoteButton: {
-    borderColor: colors.accent,
+    borderColor: colors.primary,
     borderRadius: 8,
     borderWidth: 1,
     minHeight: 36,
     justifyContent: "center",
     paddingHorizontal: 10,
   },
-  newNoteText: { color: colors.accent, fontSize: 13, fontWeight: "800" },
+  newNoteText: { color: colors.primary, fontSize: 13, fontWeight: "800" },
   noteSearch: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 8,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 14,
     minHeight: 40,
     paddingHorizontal: 10,
   },
-  noteEmpty: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  noteEmpty: { color: colors.mutedForeground, fontSize: 13, lineHeight: 19 },
   noteRow: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border,
     borderTopWidth: 1,
     gap: 7,
     paddingTop: 9,
   },
-  noteContent: { color: colors.ink, fontSize: 14, lineHeight: 20 },
+  noteContent: { color: colors.foreground, fontSize: 14, lineHeight: 20 },
   noteActions: { flexDirection: "row", gap: 5 },
   noteAction: {
     borderRadius: 6,
@@ -943,56 +938,64 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 8,
   },
-  noteActionText: { color: colors.accent, fontSize: 12, fontWeight: "700" },
+  noteActionText: { color: colors.primary, fontSize: 12, fontWeight: "700" },
   cardActions: { flexDirection: "row", gap: 8, marginTop: 3 },
   primary: {
     alignItems: "center",
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
     borderRadius: 9,
     flex: 1,
     justifyContent: "center",
     minHeight: 46,
     paddingHorizontal: 12,
   },
-  primaryText: { color: colors.panel, fontSize: 15, fontWeight: "700" },
+  primaryText: {
+    color: colors.primaryForeground,
+    fontSize: 15,
+    fontWeight: "700",
+  },
   advanced: {
     alignItems: "center",
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 9,
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 46,
     paddingHorizontal: 12,
   },
-  advancedText: { color: colors.accent, fontSize: 14, fontWeight: "700" },
+  advancedText: { color: colors.primary, fontSize: 14, fontWeight: "700" },
   advancedPanel: {
-    borderTopColor: colors.line,
+    borderTopColor: colors.border,
     borderTopWidth: 1,
     gap: 8,
     paddingTop: 10,
   },
   advancedAction: {
-    backgroundColor: colors.paper,
+    backgroundColor: colors.background,
     borderRadius: 8,
     minHeight: 42,
     justifyContent: "center",
     paddingHorizontal: 12,
   },
-  advancedActionText: { color: colors.ink, fontSize: 14, fontWeight: "600" },
-  dangerText: { color: colors.danger },
+  advancedActionText: {
+    color: colors.foreground,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  dangerText: { color: colors.destructiveForeground },
   empty: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 14,
     borderWidth: 1,
     gap: 8,
     padding: 18,
   },
-  emptyTitle: { color: colors.ink, fontSize: 18, fontWeight: "700" },
+  emptyTitle: { color: colors.foreground, fontSize: 18, fontWeight: "700" },
   loading: { alignItems: "center", gap: 10, padding: 30 },
-  muted: { color: colors.muted, fontSize: 14, lineHeight: 21 },
-  message: { color: colors.accent, fontSize: 14, lineHeight: 20 },
-  error: { color: colors.danger, fontSize: 14, lineHeight: 20 },
+  muted: { color: colors.mutedForeground, fontSize: 14, lineHeight: 21 },
+  message: { color: colors.primary, fontSize: 14, lineHeight: 20 },
+  error: { color: colors.destructiveForeground, fontSize: 14, lineHeight: 20 },
   pressed: { opacity: 0.84, transform: [{ translateY: 1 }] },
   disabled: { opacity: 0.5 },
   modalContent: { gap: 16, padding: 24, paddingTop: 52 },
@@ -1003,42 +1006,42 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   modalTitle: {
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 28,
     fontWeight: "700",
     marginTop: 8,
   },
-  closeText: { color: colors.accent, fontSize: 15, fontWeight: "700" },
+  closeText: { color: colors.primary, fontSize: 15, fontWeight: "700" },
   field: { gap: 7 },
   fieldLabel: {
-    color: colors.muted,
+    color: colors.mutedForeground,
     fontSize: 12,
     fontWeight: "800",
     letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 9,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 16,
     minHeight: 50,
     paddingHorizontal: 13,
   },
   noteEditor: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 9,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 16,
     minHeight: 180,
     padding: 13,
   },
   choiceRow: { flexDirection: "row", gap: 8 },
   choice: {
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 9,
     borderWidth: 1,
     flex: 1,
@@ -1047,14 +1050,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   choiceSelected: {
-    backgroundColor: colors.accentSoft,
-    borderColor: colors.accent,
+    backgroundColor: colors.accent,
+    borderColor: colors.primary,
   },
-  choiceText: { color: colors.muted, fontSize: 13, fontWeight: "700" },
-  choiceTextSelected: { color: colors.accent },
+  choiceText: {
+    color: colors.mutedForeground,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+  choiceTextSelected: { color: colors.primary },
   cancelButton: {
     alignItems: "center",
     justifyContent: "center",
     minHeight: 46,
   },
-});
+}));

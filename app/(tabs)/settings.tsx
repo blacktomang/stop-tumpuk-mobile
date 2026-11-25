@@ -4,29 +4,19 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { createThemedStyles } from "../../src/ui/theme";
 
 import { createSettingsService } from "../../src/application/settings-service";
 import { openNativeRepositories } from "../../src/storage/sqlite/expo-sqlite-adapter";
 import type { NativeRepositories } from "../../src/storage/sqlite/repositories";
 import type { Settings } from "../../src/types";
 
-const colors = {
-  ink: "#17211B",
-  muted: "#647067",
-  paper: "#F6F7F2",
-  panel: "#FFFFFF",
-  line: "#DDE4DC",
-  accent: "#2E6B4D",
-  accentSoft: "#E5F0E7",
-  danger: "#A53D32",
-};
-
 export default function SettingsScreen() {
+  const { colors, styles } = useStyles();
   const [repositories, setRepositories] = useState<NativeRepositories | null>(
     null,
   );
@@ -132,7 +122,7 @@ export default function SettingsScreen() {
             ]}
           >
             {saving ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color={colors.primaryForeground} />
             ) : (
               <Text style={styles.primaryText}>Save availability</Text>
             )}
@@ -195,6 +185,7 @@ function Field({
   value: string;
   onChangeText: (value: string) => void;
 }) {
+  const { colors, styles } = useStyles();
   return (
     <View style={styles.field}>
       <Text style={styles.label}>{label}</Text>
@@ -203,7 +194,7 @@ function Field({
         keyboardType="decimal-pad"
         onChangeText={onChangeText}
         placeholder="Unset"
-        placeholderTextColor="#9AA59B"
+        placeholderTextColor={colors.mutedForeground}
         style={styles.input}
         value={value}
       />
@@ -237,77 +228,81 @@ function availabilitySummary(settings: Settings): string {
   return `${weekday} weekdays · ${weekend} weekends`;
 }
 
-const styles = StyleSheet.create({
-  screen: { backgroundColor: colors.paper },
+const useStyles = createThemedStyles((colors) => ({
+  screen: { backgroundColor: colors.background },
   content: { gap: 18, padding: 24, paddingTop: 38 },
   eyebrow: {
-    color: colors.accent,
+    color: colors.primary,
     fontSize: 12,
     fontWeight: "800",
     letterSpacing: 2,
   },
   title: {
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 34,
     fontWeight: "700",
     letterSpacing: -1,
     lineHeight: 40,
   },
-  intro: { color: colors.muted, fontSize: 16, lineHeight: 24 },
+  intro: { color: colors.mutedForeground, fontSize: 16, lineHeight: 24 },
   card: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 18,
     borderWidth: 1,
     gap: 14,
     padding: 18,
   },
   field: { gap: 7 },
-  label: { color: colors.ink, fontSize: 14, fontWeight: "700" },
+  label: { color: colors.foreground, fontSize: 14, fontWeight: "700" },
   input: {
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 10,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 16,
     minHeight: 50,
     paddingHorizontal: 14,
   },
-  hint: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  hint: { color: colors.mutedForeground, fontSize: 13, lineHeight: 19 },
   primary: {
     alignItems: "center",
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
     borderRadius: 10,
     justifyContent: "center",
     minHeight: 50,
     marginTop: 4,
   },
-  primaryText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
+  primaryText: {
+    color: colors.primaryForeground,
+    fontSize: 15,
+    fontWeight: "700",
+  },
   secondary: {
     alignItems: "center",
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 10,
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 48,
   },
-  secondaryText: { color: colors.accent, fontSize: 15, fontWeight: "700" },
+  secondaryText: { color: colors.primary, fontSize: 15, fontWeight: "700" },
   pressed: { opacity: 0.84, transform: [{ translateY: 1 }] },
   disabled: { opacity: 0.5 },
-  message: { color: colors.accent, fontSize: 14, lineHeight: 20 },
-  error: { color: colors.danger, fontSize: 14, lineHeight: 20 },
+  message: { color: colors.primary, fontSize: 14, lineHeight: 20 },
+  error: { color: colors.destructiveForeground, fontSize: 14, lineHeight: 20 },
   stateCard: {
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.accent,
     borderRadius: 14,
     gap: 7,
     padding: 16,
   },
   stateLabel: {
-    color: colors.accent,
+    color: colors.primary,
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 1.3,
   },
-  stateValue: { color: colors.ink, fontSize: 16, fontWeight: "700" },
-  stateHint: { color: colors.muted, fontSize: 13 },
-});
+  stateValue: { color: colors.foreground, fontSize: 16, fontWeight: "700" },
+  stateHint: { color: colors.mutedForeground, fontSize: 13 },
+}));

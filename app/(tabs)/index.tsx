@@ -8,29 +8,19 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
 } from "react-native";
+import { createThemedStyles } from "../../src/ui/theme";
 
 import { createCaptureService } from "../../src/application/capture-service";
 import type { CaptureDestination } from "../../src/application/capture-service";
 import { openNativeRepositories } from "../../src/storage/sqlite/expo-sqlite-adapter";
 import type { NativeRepositories } from "../../src/storage/sqlite/repositories";
 
-const colors = {
-  ink: "#17211B",
-  muted: "#647067",
-  paper: "#F6F7F2",
-  panel: "#FFFFFF",
-  line: "#DDE4DC",
-  accent: "#2E6B4D",
-  accentSoft: "#E5F0E7",
-  danger: "#A53D32",
-};
-
 export default function HomeScreen() {
+  const { colors, styles } = useStyles();
   const { intakeId, shareError } = useLocalSearchParams<{
     intakeId?: string | string[];
     shareError?: string | string[];
@@ -109,10 +99,10 @@ export default function HomeScreen() {
     () =>
       repositories
         ? createCaptureService({
-          repositories,
-          generateId: randomUUID,
-          now: () => new Date().toISOString(),
-        })
+            repositories,
+            generateId: randomUUID,
+            now: () => new Date().toISOString(),
+          })
         : null,
     [repositories],
   );
@@ -195,8 +185,8 @@ export default function HomeScreen() {
           <Text style={styles.eyebrow}>STOP-TUMPUK</Text>
           <Text style={styles.title}>Make room to finish.</Text>
           <Text style={styles.intro}>
-            Save something useful now. Decide whether it belongs in your
-            Reading plan or Inbox.
+            Save something useful now. Decide whether it belongs in your Reading
+            plan or Inbox.
           </Text>
         </View>
 
@@ -210,7 +200,7 @@ export default function HomeScreen() {
             onChangeText={setUrl}
             onSubmitEditing={() => void saveCapture()}
             placeholder="https://..."
-            placeholderTextColor="#9AA59B"
+            placeholderTextColor={colors.mutedForeground}
             returnKeyType="done"
             style={styles.input}
             value={url}
@@ -244,7 +234,7 @@ export default function HomeScreen() {
             ]}
           >
             {isSaving ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color={colors.primaryForeground} />
             ) : (
               <Text style={styles.saveText}>Save source</Text>
             )}
@@ -278,6 +268,7 @@ function DestinationButton({
   label: string;
   onPress: () => void;
 }) {
+  const { styles } = useStyles();
   return (
     <Pressable
       accessibilityRole="radio"
@@ -307,43 +298,43 @@ function DestinationButton({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.paper },
+const useStyles = createThemedStyles((colors) => ({
+  screen: { flex: 1, backgroundColor: colors.background },
   content: { flexGrow: 1, padding: 24, paddingTop: 68, gap: 24 },
   header: { gap: 12, maxWidth: 480 },
   eyebrow: {
-    color: colors.accent,
+    color: colors.primary,
     fontSize: 12,
     fontWeight: "800",
     letterSpacing: 2,
   },
   title: {
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 36,
     fontWeight: "700",
     letterSpacing: -1.2,
     lineHeight: 42,
   },
-  intro: { color: colors.muted, fontSize: 17, lineHeight: 25 },
+  intro: { color: colors.mutedForeground, fontSize: 17, lineHeight: 25 },
   card: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 18,
     borderWidth: 1,
     padding: 18,
     gap: 10,
   },
   label: {
-    color: colors.muted,
+    color: colors.mutedForeground,
     fontSize: 11,
     fontWeight: "800",
     letterSpacing: 1.4,
   },
   input: {
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 10,
     borderWidth: 1,
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 16,
     minHeight: 52,
     paddingHorizontal: 14,
@@ -352,7 +343,7 @@ const styles = StyleSheet.create({
   destinationRow: { gap: 10 },
   destination: {
     alignItems: "center",
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 12,
     borderWidth: 1,
     flexDirection: "row",
@@ -361,42 +352,50 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   destinationActive: {
-    backgroundColor: colors.accentSoft,
-    borderColor: colors.accent,
+    backgroundColor: colors.accent,
+    borderColor: colors.primary,
   },
   radio: {
     alignItems: "center",
-    borderColor: "#A7B2A9",
+    borderColor: colors.input,
     borderRadius: 20,
     borderWidth: 1,
     height: 20,
     justifyContent: "center",
     width: 20,
   },
-  radioActive: { borderColor: colors.accent },
+  radioActive: { borderColor: colors.primary },
   radioDot: {
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
     borderRadius: 8,
     height: 10,
     width: 10,
   },
   destinationCopy: { gap: 2 },
-  destinationTitle: { color: colors.ink, fontSize: 15, fontWeight: "700" },
-  destinationTitleActive: { color: colors.accent },
-  destinationDescription: { color: colors.muted, fontSize: 13 },
+  destinationTitle: {
+    color: colors.foreground,
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  destinationTitleActive: { color: colors.primary },
+  destinationDescription: { color: colors.mutedForeground, fontSize: 13 },
   saveButton: {
     alignItems: "center",
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
     borderRadius: 10,
     justifyContent: "center",
     minHeight: 52,
     marginTop: 8,
   },
-  saveText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
+  saveText: {
+    color: colors.primaryForeground,
+    fontSize: 16,
+    fontWeight: "700",
+  },
   pressed: { opacity: 0.84, transform: [{ translateY: 1 }] },
   disabled: { opacity: 0.5 },
-  status: { color: colors.accent, fontSize: 14, lineHeight: 20 },
-  error: { color: colors.danger, fontSize: 14, lineHeight: 20 },
+  status: { color: colors.primary, fontSize: 14, lineHeight: 20 },
+  error: { color: colors.destructiveForeground, fontSize: 14, lineHeight: 20 },
   note: {
     alignItems: "flex-start",
     flexDirection: "row",
@@ -405,10 +404,10 @@ const styles = StyleSheet.create({
   },
   noteMark: {
     alignItems: "center",
-    borderColor: colors.muted,
+    borderColor: colors.mutedForeground,
     borderRadius: 10,
     borderWidth: 1,
-    color: colors.muted,
+    color: colors.mutedForeground,
     fontSize: 12,
     fontWeight: "700",
     height: 20,
@@ -416,5 +415,10 @@ const styles = StyleSheet.create({
     textAlign: "center",
     width: 20,
   },
-  noteText: { color: colors.muted, flex: 1, fontSize: 13, lineHeight: 20 },
-});
+  noteText: {
+    color: colors.mutedForeground,
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 20,
+  },
+}));

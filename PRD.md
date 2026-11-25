@@ -123,6 +123,8 @@ The queue, settings, notes, estimates, and lifecycle data remain usable without 
 
 Use Expo Router for native navigation and deep-link handling. Use the platform share integration for inbound URL/text shares, and keep outbound sharing separate if introduced later. Native modules that need config plugins or a development build must be tested in a development/release binary, not inferred from browser emulation or Expo Go alone.
 
+App screens, navigation, and controls follow the device's light or dark appearance. The appearance of a source loaded in the reader depends on the source website.
+
 Android is the initial implementation and validation platform. iOS release requires a simulator check, physical-device persistence and WebView checks, share-extension/App Group verification, background/foreground timer checks, signing/provisioning, privacy metadata, and App Store review readiness. The exact minimum OS versions, representative source-site matrix, and final share MIME/payload policy remain release decisions.
 
 ## 5. Success measures

@@ -7,11 +7,11 @@ import {
   ActivityIndicator,
   Linking,
   Pressable,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
 import { WebView, type WebViewNavigation } from "react-native-webview";
+import { createThemedStyles } from "../src/ui/theme";
 
 import {
   createReadingWebViewConfiguration,
@@ -44,22 +44,12 @@ import { randomUUID } from "expo-crypto";
 import type { NativeRepositories } from "../src/storage/sqlite/repositories";
 import type { MaterialStatus } from "../src/types";
 
-const colors = {
-  ink: "#17211B",
-  muted: "#647067",
-  paper: "#F6F7F2",
-  panel: "#FFFFFF",
-  line: "#DDE4DC",
-  accent: "#2E6B4D",
-  accentSoft: "#E5F0E7",
-  danger: "#A53D32",
-};
-
 function textParam(value: string | string[] | undefined, fallback: string) {
   return typeof value === "string" && value.trim() !== "" ? value : fallback;
 }
 
 export default function ReadingScreen() {
+  const { colors, styles } = useStyles();
   const params = useLocalSearchParams<{
     materialId?: string;
     url?: string;
@@ -304,7 +294,7 @@ export default function ReadingScreen() {
                 onShouldStartLoadWithRequest={handleExternalNavigation}
                 renderLoading={() => (
                   <View style={styles.loadingOverlay}>
-                    <ActivityIndicator color={colors.accent} />
+                    <ActivityIndicator color={colors.primary} />
                     <Text style={styles.muted}>Loading source…</Text>
                   </View>
                 )}
@@ -352,7 +342,7 @@ export default function ReadingScreen() {
               ]}
             >
               {isFinishing ? (
-                <ActivityIndicator color="#FFFFFF" />
+                <ActivityIndicator color={colors.primaryForeground} />
               ) : (
                 <Text style={styles.primaryText}>Finish</Text>
               )}
@@ -381,6 +371,7 @@ function StatePanel({
   onRetry?: () => void;
   title: string;
 }) {
+  const { styles } = useStyles();
   return (
     <View style={styles.statePanel}>
       <Text style={styles.stateTitle}>{title}</Text>
@@ -429,6 +420,7 @@ function TimerPanel({
   onResume: () => void;
   onStart: () => void;
 }) {
+  const { colors, styles } = useStyles();
   const hasSession = snapshot.session !== null;
   const action = snapshot.phase === "running" ? onPause : onResume;
   const actionLabel = snapshot.phase === "running" ? "Pause" : "Resume";
@@ -440,7 +432,7 @@ function TimerPanel({
         <Text style={styles.timerMessage}>{timerMessage(snapshot.phase)}</Text>
       </View>
       {snapshot.phase === "loading" ? (
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color={colors.primary} />
       ) : snapshot.phase === "error" ? null : (
         <View style={styles.timerActions}>
           {hasSession && snapshot.phase !== "idle" ? (
@@ -500,79 +492,81 @@ function TimerPanel({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: { backgroundColor: colors.paper, flex: 1 },
+const useStyles = createThemedStyles((colors) => ({
+  screen: { backgroundColor: colors.background, flex: 1 },
   header: {
-    backgroundColor: colors.panel,
-    borderBottomColor: colors.line,
+    backgroundColor: colors.card,
+    borderBottomColor: colors.border,
     borderBottomWidth: 1,
     gap: 5,
     padding: 18,
   },
-  title: { color: colors.ink, fontSize: 20, fontWeight: "800" },
-  estimate: { color: colors.accent, fontSize: 14, fontWeight: "700" },
-  domain: { color: colors.muted, fontSize: 13, fontWeight: "700" },
-  url: { color: colors.muted, fontSize: 12 },
-  reader: { backgroundColor: colors.panel, flex: 1, minHeight: 300 },
-  webView: { flex: 1 },
-  progressTrack: { backgroundColor: colors.line, height: 3, width: "100%" },
-  progress: { backgroundColor: colors.accent, height: 3 },
+  title: { color: colors.foreground, fontSize: 20, fontWeight: "800" },
+  estimate: { color: colors.primary, fontSize: 14, fontWeight: "700" },
+  domain: { color: colors.mutedForeground, fontSize: 13, fontWeight: "700" },
+  url: { color: colors.mutedForeground, fontSize: 12 },
+  reader: { backgroundColor: colors.card, flex: 1, minHeight: 300 },
+  webView: { backgroundColor: colors.card, flex: 1 },
+  progressTrack: { backgroundColor: colors.border, height: 3, width: "100%" },
+  progress: { backgroundColor: colors.primary, height: 3 },
   loadingOverlay: {
     alignItems: "center",
-    backgroundColor: colors.panel,
+    backgroundColor: colors.card,
     flex: 1,
     gap: 10,
     justifyContent: "center",
   },
-  muted: { color: colors.muted },
+  muted: { color: colors.mutedForeground },
   statePanel: {
     alignItems: "center",
-    backgroundColor: colors.panel,
+    backgroundColor: colors.card,
     flex: 1,
     gap: 14,
     justifyContent: "center",
     padding: 28,
   },
   stateTitle: {
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 20,
     fontWeight: "800",
     textAlign: "center",
   },
   stateMessage: {
-    color: colors.muted,
+    color: colors.mutedForeground,
     fontSize: 15,
     lineHeight: 22,
     textAlign: "center",
   },
   stateActions: { alignItems: "stretch", gap: 10, width: "100%" },
-  footer: { backgroundColor: colors.paper, gap: 10, padding: 18 },
+  footer: { backgroundColor: colors.background, gap: 10, padding: 18 },
   primary: {
     alignItems: "center",
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
     borderRadius: 10,
     minHeight: 48,
     justifyContent: "center",
     paddingHorizontal: 16,
   },
-  primaryText: { color: "#FFFFFF", fontWeight: "800" },
+  primaryText: { color: colors.primaryForeground, fontWeight: "800" },
   secondary: {
     alignItems: "center",
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.accent,
     borderRadius: 10,
     minHeight: 46,
     justifyContent: "center",
     paddingHorizontal: 16,
   },
-  secondaryText: { color: colors.accent, fontWeight: "800" },
+  secondaryText: { color: colors.primary, fontWeight: "800" },
   message: {
-    backgroundColor: colors.accentSoft,
-    color: colors.ink,
+    backgroundColor: colors.accent,
+    color: colors.foreground,
     padding: 10,
   },
   timerPanel: {
     alignItems: "center",
-    backgroundColor: colors.ink,
+    backgroundColor: colors.card,
+    borderBottomColor: colors.border,
+    borderBottomWidth: 1,
     flexDirection: "row",
     gap: 14,
     justifyContent: "space-between",
@@ -581,26 +575,26 @@ const styles = StyleSheet.create({
   },
   timerCopy: { flex: 1, gap: 3 },
   timerEyebrow: {
-    color: "#AFC7B4",
+    color: colors.primary,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1,
   },
-  timerTitle: { color: "#FFFFFF", fontSize: 16, fontWeight: "800" },
-  timerMessage: { color: "#D8E4D9", fontSize: 12, lineHeight: 17 },
+  timerTitle: { color: colors.foreground, fontSize: 16, fontWeight: "800" },
+  timerMessage: { color: colors.mutedForeground, fontSize: 12, lineHeight: 17 },
   timerActions: { alignItems: "flex-end", gap: 8, minWidth: 116 },
   timerValue: {
-    color: "#FFFFFF",
+    color: colors.foreground,
     fontSize: 28,
     fontVariant: ["tabular-nums"],
     fontWeight: "800",
   },
   placeholder: {
-    color: colors.muted,
+    color: colors.mutedForeground,
     fontSize: 12,
     lineHeight: 17,
     textAlign: "center",
   },
   pressed: { opacity: 0.75 },
   disabled: { opacity: 0.55 },
-});
+}));

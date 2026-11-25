@@ -1,13 +1,5 @@
-import { StyleSheet, Text, View } from "react-native";
-
-const colors = {
-  ink: "#17211B",
-  muted: "#647067",
-  line: "#DDE4DC",
-  accent: "#2E6B4D",
-  warning: "#A66A12",
-  danger: "#A53D32",
-};
+import { Text, View } from "react-native";
+import { createThemedStyles } from "../../ui/theme";
 
 export function CapacityMeter({
   label,
@@ -20,12 +12,13 @@ export function CapacityMeter({
   valueText: string;
   tone: "neutral" | "positive" | "warning" | "danger";
 }) {
+  const { colors, styles } = useStyles();
   const fillColor =
     tone === "danger"
-      ? colors.danger
+      ? colors.destructiveForeground
       : tone === "warning"
-        ? colors.warning
-        : colors.accent;
+        ? colors.warningForeground
+        : colors.primary;
   const accessibilityValue =
     value === null
       ? { text: valueText }
@@ -62,10 +55,10 @@ export function CapacityMeter({
   );
 }
 
-const styles = StyleSheet.create({
+const useStyles = createThemedStyles((colors) => ({
   wrapper: { gap: 10 },
   track: {
-    backgroundColor: colors.line,
+    backgroundColor: colors.border,
     borderRadius: 8,
     height: 14,
     overflow: "hidden",
@@ -77,11 +70,11 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   caption: {
-    color: colors.muted,
+    color: colors.mutedForeground,
     fontSize: 10,
     fontWeight: "800",
     letterSpacing: 1.1,
   },
-  value: { color: colors.ink, fontSize: 13, fontWeight: "700" },
-  danger: { color: colors.danger },
-});
+  value: { color: colors.foreground, fontSize: 13, fontWeight: "700" },
+  danger: { color: colors.destructiveForeground },
+}));

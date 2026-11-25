@@ -4,10 +4,10 @@ import {
   ActivityIndicator,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
+import { createThemedStyles } from "../src/ui/theme";
 
 import { exportData, importData } from "../src/application/data-transfer";
 import { nativeTransferFileAdapter } from "../src/platform/transfer-file-adapter";
@@ -19,18 +19,8 @@ import {
 import { openNativeRepositories } from "../src/storage/sqlite/expo-sqlite-adapter";
 import type { NativeRepositories } from "../src/storage/sqlite/repositories";
 
-const colors = {
-  ink: "#17211B",
-  muted: "#647067",
-  paper: "#F6F7F2",
-  panel: "#FFFFFF",
-  line: "#DDE4DC",
-  accent: "#2E6B4D",
-  accentSoft: "#E5F0E7",
-  danger: "#A53D32",
-};
-
 export default function TransferScreen() {
+  const { colors, styles } = useStyles();
   const [repositories, setRepositories] = useState<NativeRepositories | null>(
     null,
   );
@@ -150,7 +140,7 @@ export default function TransferScreen() {
             ]}
           >
             {busy ? (
-              <ActivityIndicator color="#FFFFFF" />
+              <ActivityIndicator color={colors.primaryForeground} />
             ) : (
               <Text style={styles.primaryText}>Export backup</Text>
             )}
@@ -248,65 +238,69 @@ async function existingRecordIds(repositories: NativeRepositories) {
   };
 }
 
-const styles = StyleSheet.create({
-  screen: { backgroundColor: colors.paper },
+const useStyles = createThemedStyles((colors) => ({
+  screen: { backgroundColor: colors.background },
   content: { gap: 18, padding: 24, paddingTop: 38 },
   eyebrow: {
-    color: colors.accent,
+    color: colors.primary,
     fontSize: 12,
     fontWeight: "800",
     letterSpacing: 2,
   },
   title: {
-    color: colors.ink,
+    color: colors.foreground,
     fontSize: 34,
     fontWeight: "700",
     letterSpacing: -1,
     lineHeight: 40,
   },
-  intro: { color: colors.muted, fontSize: 16, lineHeight: 24 },
+  intro: { color: colors.mutedForeground, fontSize: 16, lineHeight: 24 },
   card: {
-    backgroundColor: colors.panel,
-    borderColor: colors.line,
+    backgroundColor: colors.card,
+    borderColor: colors.border,
     borderRadius: 18,
     borderWidth: 1,
     gap: 14,
     padding: 18,
   },
-  cardTitle: { color: colors.ink, fontSize: 19, fontWeight: "700" },
-  body: { color: colors.muted, fontSize: 14, lineHeight: 21 },
+  cardTitle: { color: colors.foreground, fontSize: 19, fontWeight: "700" },
+  body: { color: colors.mutedForeground, fontSize: 14, lineHeight: 21 },
   primary: {
     alignItems: "center",
-    backgroundColor: colors.accent,
+    backgroundColor: colors.primary,
     borderRadius: 10,
     flex: 1,
     justifyContent: "center",
     minHeight: 50,
     paddingHorizontal: 14,
   },
-  primaryText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
+  primaryText: {
+    color: colors.primaryForeground,
+    fontSize: 15,
+    fontWeight: "700",
+  },
   secondary: {
     alignItems: "center",
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 10,
     borderWidth: 1,
     justifyContent: "center",
     minHeight: 50,
     paddingHorizontal: 14,
   },
-  secondaryText: { color: colors.accent, fontSize: 15, fontWeight: "700" },
+  secondaryText: { color: colors.primary, fontSize: 15, fontWeight: "700" },
   preview: {
-    backgroundColor: colors.accentSoft,
+    backgroundColor: colors.accent,
     borderRadius: 12,
     gap: 9,
     padding: 14,
   },
-  previewTitle: { color: colors.ink, fontSize: 16, fontWeight: "700" },
-  previewHint: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  previewTitle: { color: colors.foreground, fontSize: 16, fontWeight: "700" },
+  previewHint: { color: colors.mutedForeground, fontSize: 13, lineHeight: 19 },
   actionRow: { flexDirection: "row", gap: 10, marginTop: 4 },
   cancel: {
     alignItems: "center",
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 10,
     borderWidth: 1,
     justifyContent: "center",
@@ -315,7 +309,7 @@ const styles = StyleSheet.create({
   },
   back: {
     alignItems: "center",
-    borderColor: colors.line,
+    borderColor: colors.border,
     borderRadius: 10,
     borderWidth: 1,
     justifyContent: "center",
@@ -323,6 +317,6 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.84, transform: [{ translateY: 1 }] },
   disabled: { opacity: 0.5 },
-  error: { color: colors.danger, fontSize: 14, lineHeight: 20 },
-  message: { color: colors.accent, fontSize: 14, lineHeight: 20 },
-});
+  error: { color: colors.destructiveForeground, fontSize: 14, lineHeight: 20 },
+  message: { color: colors.primary, fontSize: 14, lineHeight: 20 },
+}));
